@@ -1,22 +1,41 @@
 #pragma once
 
 #include <cinolib/gl/glcanvas.h>
+#include <RSE/types.hpp>
+#include <RSE/AxesWidget.hpp>
+#include <RSE/Child.hpp>
+#include <RSE/Style.hpp>
+#include <vector>
 
-namespace RSE {
+namespace RSE
+{
 
-    class App final
-    {
+	class App final
+	{
 
-    private:
+	private:
 
-        cinolib::GLcanvas m_canvas;
+		static constexpr Int c_maxSize{ 10 };
 
-    public:
+		cinolib::GLcanvas m_canvas;
+		AxesWidget m_axesWidget;
+		std::vector<Child*> m_children;
+		Int m_size;
 
-        App();
+		Int minRequiredSize() const;
+		bool hasAnySolo() const;
+		void drawControls();
+		void doSave() const;
+		void doLoad();
+		void doExport() const;
+		void updateColors();
 
-        int launch();
+	public:
 
-    };
+		App();
+
+		int launch();
+
+	};
 
 }

@@ -13,7 +13,10 @@ find_package (cinolib REQUIRED)
 
 add_executable (main
     "src/main.cpp"
-    "src/App.cpp"
+    "src/RSE/App.cpp"
+    "src/RSE/AxesWidget.cpp"
+    "src/RSE/Child.cpp"
+    "src/RSE/Style.cpp"
 )
 
 set_target_properties (main PROPERTIES
