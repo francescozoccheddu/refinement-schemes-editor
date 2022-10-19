@@ -7,7 +7,7 @@
 namespace RSE
 {
 
-	class AxesWidget final : public cinolib::CanvasGuiItem
+	class AxesGuiItem final : public cinolib::CanvasGuiItem
 	{
 
 	private:
@@ -16,7 +16,7 @@ namespace RSE
 
 	public:
 
-		explicit AxesWidget(const cinolib::FreeCamera<Real>& _camera);
+		explicit AxesGuiItem(const cinolib::FreeCamera<Real>& _camera);
 
 		const cinolib::FreeCamera<Real>& camera() const;
 

@@ -1,4 +1,4 @@
-#include <RSE/AxesWidget.hpp>
+#include <RSE/AxesGuiItem.hpp>
 
 #include <imgui.h>
 #include <cinolib/deg_rad.h>
@@ -11,16 +11,16 @@
 namespace RSE
 {
 
-	AxesWidget::AxesWidget(const cinolib::FreeCamera<Real>& _camera)
+	AxesGuiItem::AxesGuiItem(const cinolib::FreeCamera<Real>& _camera)
 		: m_camera{ &_camera }
 	{}
 
-	const cinolib::FreeCamera<Real>& AxesWidget::camera() const
+	const cinolib::FreeCamera<Real>& AxesGuiItem::camera() const
 	{
 		return *m_camera;
 	}
 
-	void AxesWidget::draw()
+	void AxesGuiItem::draw()
 	{
 		ImDrawList& drawList{ *ImGui::GetWindowDrawList() };
 		RVec origin;
