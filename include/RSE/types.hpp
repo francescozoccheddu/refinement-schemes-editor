@@ -9,8 +9,12 @@ namespace RSE
 
 	using Real = double;
 	using Int = int;
-	using RVec = cinolib::vec<3, Real>;
-	using IVec = cinolib::vec<3, Int>;
+	
+	template<typename TData>
+	using Vec3 = cinolib::vec<3, TData>;
+
+	using RVec = Vec3<Real>;
+	using IVec = Vec3<Int>;
 
 	using Id = unsigned int;
 	constexpr Id noId{ static_cast<Id>(-1) };

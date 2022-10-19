@@ -1,27 +1,23 @@
 #pragma once
 
 #include <RSE/types.hpp>
-#include <cinolib/color.h>
-#include <array>
+#include <RSE/PolyControl.hpp>
+#include <optional>
 
 namespace RSE
 {
 
-	class Child final
+	class ChildControl final
 	{
 
 	private:
 
-		bool m_valid;
-		PolyVertsU m_verts;
-		PolyVertData<char> m_vertIds;
 		bool m_visible;
 		bool m_solo;
 		bool m_expanded;
+		IPolyControl m_polyControl;
 		Int m_maxSize;
 
-		void updateValid();
-		void updateMaxSize();
 		void update();
 
 	public:
@@ -31,19 +27,17 @@ namespace RSE
 			Updated, Removed, None 
 		};
 
-		Child(Int _size);
+		ChildControl(Int _size);
 
-		const PolyVertsU& verts() const;
+		const IPolyControl& polyControl() const;
+
+		void setVerts(const PolyVertsU& _verts);
 
 		bool visible() const;
 
 		bool solo() const;
 
 		bool expanded() const;
-
-		bool valid() const;
-
-		void setVerts(const PolyVertsU& _verts);
 
 		void setExpanded(bool _expanded);
 
@@ -53,7 +47,7 @@ namespace RSE
 
 		Int maxSize() const;
 
-		EResult draw(Int _size, bool _anySolo);
+		EResult draw(Int _size, bool _anySolo, const std::optional<PolyVertsU>& _copiedVerts, const std::optional<IVec>& _copiedVert);
 
 	};
 

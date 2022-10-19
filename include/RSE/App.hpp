@@ -3,7 +3,8 @@
 #include <cinolib/gl/glcanvas.h>
 #include <RSE/types.hpp>
 #include <RSE/AxesWidget.hpp>
-#include <RSE/Child.hpp>
+#include <RSE/ChildControl.hpp>
+#include <RSE/PolyControl.hpp>
 #include <RSE/Style.hpp>
 #include <vector>
 
@@ -19,7 +20,8 @@ namespace RSE
 
 		cinolib::GLcanvas m_canvas;
 		AxesWidget m_axesWidget;
-		std::vector<Child*> m_children;
+		std::vector<ChildControl*> m_children;
+		RPolyControl m_polyControl;
 		Int m_size;
 
 		Int minRequiredSize() const;

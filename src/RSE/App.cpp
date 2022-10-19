@@ -12,7 +12,7 @@
 namespace RSE
 {
 
-	App::App() : m_canvas{}, m_axesWidget{ m_canvas.camera }, m_children{}, m_size{ 3 }
+	App::App() : m_canvas{}, m_axesWidget{ m_canvas.camera }, m_children{}, m_size{ 3 }, m_polyControl{ RPolyControl::cube(1) }
 	{
 		m_canvas.background = cinolib::Color::hsv2rgb(0.0f, 0.0f, 0.1f);
 		m_canvas.callback_app_controls = [this]() { drawControls(); };
@@ -23,7 +23,7 @@ namespace RSE
 	Int App::minRequiredSize() const
 	{
 		Int minSize{ 1 };
-		for (const Child* child : m_children)
+		for (const ChildControl* child : m_children)
 		{
 			if (child->maxSize() > minSize)
 			{
@@ -35,7 +35,7 @@ namespace RSE
 
 	bool App::hasAnySolo() const
 	{
-		for (const Child* child : m_children)
+		for (const ChildControl* child : m_children)
 		{
 			if (child->solo())
 			{
@@ -55,9 +55,9 @@ namespace RSE
 			constexpr char sep{ '\n' };
 			file << m_size << sep;
 			file << m_children.size() << sep;
-			for (const Child* child : m_children)
+			for (const ChildControl* child : m_children)
 			{
-				for (const IVec& vert : child->verts())
+				for (const IVec& vert : child->polyControl().verts())
 				{
 					file << vert << sep;
 				}
@@ -71,7 +71,7 @@ namespace RSE
 		const std::string filename{ cinolib::file_dialog_open() };
 		if (!filename.empty())
 		{
-			for (Child* child : m_children)
+			for (ChildControl* child : m_children)
 			{
 				delete child;
 			}
@@ -84,7 +84,7 @@ namespace RSE
 			m_children.reserve(childrenSize);
 			while (childrenSize > 0)
 			{
-				Child& child{ *new Child{1} };
+				ChildControl& child{ *new ChildControl{1} };
 				m_children.push_back(&child);
 				PolyVertsU verts;
 				for (IVec& vert : verts)
@@ -108,55 +108,72 @@ namespace RSE
 	{
 		ImGui::Unindent(ImGui::GetTreeNodeToLabelSpacing());
 		ImGui::Spacing();
-		ImGui::DragInt("Size", &m_size, 1.0f / 20.0f, minRequiredSize(), c_maxSize, "%d", ImGuiSliderFlags_AlwaysClamp);
-		ImGui::Spacing();
-		if (m_children.empty())
+		if (ImGui::CollapsingHeader("Source"))
 		{
-			ImGui::TextDisabled("No children");
-		}
-		else
-		{
-			if (m_children.size() == 1)
+			ImGui::Spacing();
+			ImGui::DragInt("Size", &m_size, 1.0f / 20.0f, minRequiredSize(), c_maxSize, "%d", ImGuiSliderFlags_AlwaysClamp);
+			ImGui::Spacing();
+			if (m_polyControl.draw(-5.0, 5.0))
 			{
-				ImGui::TextDisabled("1 child:");
+
+			}
+			ImGui::Spacing();
+			if (ImGui::Button("Cube"))
+			{
+				m_polyControl.setVerts(RPolyControl::cubeVerts(1.0));
+			}
+		}
+		ImGui::Spacing();
+		if (ImGui::CollapsingHeader("Children"))
+		{
+			ImGui::Spacing();
+			if (m_children.empty())
+			{
+				ImGui::TextDisabled("No children");
 			}
 			else
 			{
-				ImGui::TextDisabled("%d children:", m_children.size());
-			}
-		}
-		ImGui::Spacing();
-		const bool anySolo{ hasAnySolo() };
-		for (std::size_t i{}; i < m_children.size(); i++)
-		{
-			Child& child{ *m_children[i] };
-			ImGui::PushID(&child);
-			const Style style{ (i / static_cast<float>(m_children.size())) * 360.0f };
-			style.pushImGui();
-			switch (child.draw(m_size, anySolo))
-			{
-				case Child::EResult::Updated:
-					m_size = std::max(m_size, child.maxSize());
-					break;
-				case Child::EResult::Removed:
-					m_children.erase(m_children.begin() + i);
-					delete& child;
-					--i;
-					break;
+				if (m_children.size() == 1)
+				{
+					ImGui::TextDisabled("1 child:");
+				}
+				else
+				{
+					ImGui::TextDisabled("%d children:", m_children.size());
+				}
 			}
 			ImGui::Spacing();
-			Style::popImGui();
-			ImGui::PopID();
+			const bool anySolo{ hasAnySolo() };
+			std::optional<PolyVertsU> copiedVerts{ IPolyControl::pasteVerts() };
+			std::optional<IVec> copiedVert{ IPolyControl::pasteVert() };
+			for (std::size_t i{}; i < m_children.size(); i++)
+			{
+				ChildControl& child{ *m_children[i] };
+				ImGui::PushID(&child);
+				const Style style{ (i / static_cast<float>(m_children.size())) * 360.0f };
+				style.pushImGui();
+				switch (child.draw(m_size, anySolo, copiedVerts, copiedVert))
+				{
+					case ChildControl::EResult::Updated:
+						m_size = std::max(m_size, child.maxSize());
+						break;
+					case ChildControl::EResult::Removed:
+						m_children.erase(m_children.begin() + i);
+						delete& child;
+						--i;
+						break;
+				}
+				ImGui::Spacing();
+				Style::popImGui();
+				ImGui::PopID();
+			}
+			if (ImGui::Button("Add"))
+			{
+				m_children.push_back(new ChildControl{ m_size });
+			}
 		}
-		ImGui::Spacing();
-		if (ImGui::Button("Add"))
-		{
-			m_children.push_back(new Child{ m_size });
-		}
-		ImGui::Spacing();
 		ImGui::Spacing();
 		ImGui::Separator();
-		ImGui::Spacing();
 		ImGui::Spacing();
 		if (ImGui::Button("Save"))
 		{
@@ -172,7 +189,6 @@ namespace RSE
 		{
 			doExport();
 		}
-		ImGui::Spacing();
 		ImGui::Spacing();
 	}
 

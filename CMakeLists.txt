@@ -15,7 +15,7 @@ add_executable (main
     "src/main.cpp"
     "src/RSE/App.cpp"
     "src/RSE/AxesWidget.cpp"
-    "src/RSE/Child.cpp"
+    "src/RSE/ChildControl.cpp"
     "src/RSE/Style.cpp"
 )
 
