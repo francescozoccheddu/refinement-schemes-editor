@@ -7,6 +7,7 @@
 #include <imgui.h>
 #include <glfw/glfw3.h>
 #include <sstream>
+#include <stdexcept>
 
 namespace RSE::internal
 {
@@ -29,22 +30,28 @@ namespace RSE::internal
 	}
 
 	template<bool TInt>
+	PolyControl<TInt>::Verts PolyControl<TInt>::cubeVerts(Value _min, Value _max)
+	{
+		if (_min > _max)
+		{
+			throw std::logic_error{ "min > max" };
+		}
+		return Verts{ Vert{ _min,_min,_min }, Vert{ _min,_min,_max }, Vert{ _min,_max,_min }, Vert{ _min,_max,_max }, Vert{ _max,_min,_min }, Vert{ _max,_min,_max }, Vert{ _max,_max,_min }, Vert{ _max,_max,_max } };
+	}
+
+	template<bool TInt>
 	PolyControl<TInt>::Verts PolyControl<TInt>::cubeVerts(Value _size)
 	{
-		return Verts{ Vert{ 0,0,0 }, Vert{ 0,0,_size }, Vert{ 0,_size,0 }, Vert{ 0,_size,_size }, Vert{ _size,0,0 }, Vert{ _size,0,_size }, Vert{ _size,_size,0 }, Vert{ _size,_size,_size } };
+		return cubeVerts(-_size / 2, _size / 2);
 	}
 
 	template<bool TInt>
-	PolyControl<TInt> PolyControl<TInt>::cube(Value _size)
-	{
-		return PolyControl{ cubeVerts(_size) };
-	}
-
-	template<bool TInt>
-	PolyControl<TInt>::PolyControl(const Verts& _verts) :
+	PolyControl<TInt>::PolyControl(const Verts& _verts, bool _vertSelection) :
 		m_verts{ _verts },
 		m_ids{ 0,1,2,3,4,5,6,7 },
-		m_valid{}
+		m_valid{},
+		m_vertSelection{ _vertSelection },
+		m_activeVert{ std::nullopt }
 	{
 		update();
 	}
@@ -134,6 +141,42 @@ namespace RSE::internal
 	}
 
 	template<bool TInt>
+	void PolyControl<TInt>::setActiveVert(std::optional<std::size_t> _index)
+	{
+		if (!m_vertSelection)
+		{
+			throw std::logic_error{ "vert selection disabled" };
+		}
+		if (_index > m_verts.size())
+		{
+			throw std::domain_error{ "out of range" };
+		}
+		m_activeVert = _index;
+	}
+
+	template<bool TInt>
+	void PolyControl<TInt>::setVertSelection(bool _enabled)
+	{
+		m_vertSelection = _enabled;
+		if (!m_vertSelection)
+		{
+			m_activeVert = std::nullopt;
+		}
+	}
+
+	template<bool TInt>
+	bool PolyControl<TInt>::vertSelection() const
+	{
+		return m_vertSelection;
+	}
+
+	template<bool TInt>
+	std::optional<std::size_t> PolyControl<TInt>::activeVert() const
+	{
+		return m_activeVert;
+	}
+
+	template<bool TInt>
 	const typename PolyControl<TInt>::Verts& PolyControl<TInt>::verts() const
 	{
 		return m_verts;
@@ -165,25 +208,46 @@ namespace RSE::internal
 	}
 
 	template<bool TInt>
-	bool PolyControl<TInt>::draw(Value _min, Value _max, std::optional<Vert>& _copiedVert, bool& _copied)
+	bool PolyControl<TInt>::draw(Value _min, Value _max, std::optional<Verts>& _copiedVerts, std::optional<Vert>& _copiedVert)
 	{
 		if (_min > _max)
 		{
 			throw std::logic_error{ "min > max" };
 		}
-		_copied = false;
 		bool updated{ false };
+		// cube
+		if (ImGui::SmallButton("Cube"))
+		{
+			m_verts = cubeVerts(_min, _max);
+			updated = true;
+		}
+		// copy/paste
+		ImGui::SameLine();
+		if (ImGui::SmallButton("C"))
+		{
+			_copiedVerts = m_verts;
+		}
+		if (_copiedVerts.has_value())
+		{
+			ImGui::SameLine();
+			if (ImGui::SmallButton("P"))
+			{
+				m_verts = _copiedVerts.value();
+				updated = true;
+			}
+		}
+		// verts
+		ImGui::Spacing();
 		const ImVec2 lineSize{ ImGui::GetColumnWidth(), ImGui::GetFrameHeight() };
 		const float textYOffs{ (lineSize.y - ImGui::GetTextLineHeight()) / 2 };
 		const PolyVertData<std::size_t> firstIs{ firstOccurrenceIndices() };
 		for (std::size_t i{}; i < m_verts.size(); i++)
 		{
 			ImGui::PushID(m_ids[i]);
-			Vert& vert{ m_verts[i] };
-			std::conditional_t<TInt, int, float> xyz[3]{ static_cast<Value>(vert.x()), static_cast<Value>(vert.y()), static_cast<Value>(vert.z()) };
+			// handle
 			const ImVec2 cursor{ ImGui::GetCursorPos() };
 			ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.2f);
-			bool selected;
+			bool selected{ false };
 			ImGui::Selectable("##handle", &selected, ImGuiSelectableFlags_AllowItemOverlap, lineSize);
 			const bool dragging{ ImGui::IsItemActive() };
 			if (dragging)
@@ -199,6 +263,7 @@ namespace RSE::internal
 			}
 			ImGui::PopStyleVar();
 			ImGui::SetCursorPos(cursor);
+			// text
 			ImGui::SetCursorPosY(cursor.y + textYOffs);
 			if (dragging)
 			{
@@ -217,8 +282,21 @@ namespace RSE::internal
 			}
 			ImGui::SameLine();
 			ImGui::SetCursorPosY(cursor.y);
+			// selection
+			if (m_vertSelection)
 			{
-				const float speed{ static_cast<float>(_max - _min) / 50.0f};
+				int activeI{ static_cast<int>(m_activeVert.value_or(m_verts.size())) };
+				if (ImGui::RadioButton("", &activeI, i))
+				{
+					m_activeVert = i;
+				}
+				ImGui::SameLine();
+			}
+			// value
+			Vert& vert{ m_verts[i] };
+			{
+				std::conditional_t<TInt, int, float> xyz[3]{ static_cast<Value>(vert.x()), static_cast<Value>(vert.y()), static_cast<Value>(vert.z()) };
+				const float speed{ static_cast<float>(_max - _min) / 50.0f };
 				bool vertUpdated;
 				if constexpr (TInt)
 				{
@@ -236,11 +314,11 @@ namespace RSE::internal
 					updated = true;
 				}
 			}
+			// copy/paste
 			ImGui::SameLine();
 			if (ImGui::SmallButton("C"))
 			{
 				_copiedVert = vert;
-				_copied = true;
 			}
 			if (_copiedVert.has_value())
 			{
@@ -261,14 +339,18 @@ namespace RSE::internal
 	}
 
 	template<bool TInt>
-	bool PolyControl<TInt>::draw(Value _min, Value _max, const std::optional<Vert>& _copiedVert)
+	bool PolyControl<TInt>::draw(Value _min, Value _max, const std::optional<Verts>& _copiedVerts, const std::optional<Vert>& _copiedVert)
 	{
-		bool copied{ false };
+		std::optional<Verts> tempVerts{ _copiedVerts };
 		std::optional<Vert> tempVert{ _copiedVert };
-		const bool updated{ draw(_min, _max, tempVert, copied) };
-		if (copied)
+		const bool updated{ draw(_min, _max, tempVerts, tempVert) };
+		if (tempVert.has_value() && tempVert != _copiedVert)
 		{
 			copyVert(tempVert.value());
+		}
+		if (tempVerts.has_value() && tempVerts != _copiedVerts)
+		{
+			copyVerts(tempVerts.value());
 		}
 		return updated;
 	}
@@ -276,7 +358,7 @@ namespace RSE::internal
 	template<bool TInt>
 	bool PolyControl<TInt>::draw(Value _min, Value _max)
 	{
-		return draw(_min, _max, pasteVert());
+		return draw(_min, _max, pasteVerts(), pasteVert());
 	}
 
 }

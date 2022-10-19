@@ -23,10 +23,12 @@ namespace RSE
 		std::vector<ChildControl*> m_children;
 		RPolyControl m_polyControl;
 		Int m_size;
+		ChildControl* m_activeChild;
 
 		Int minRequiredSize() const;
 		bool hasAnySolo() const;
 		void drawControls();
+		void doClear();
 		void doSave() const;
 		void doLoad();
 		void doExport() const;

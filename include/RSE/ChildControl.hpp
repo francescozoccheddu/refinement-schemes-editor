@@ -45,6 +45,8 @@ namespace RSE
 		
 		void setVisible(bool _visible);
 
+		void setActiveVert(std::optional<std::size_t> _index);
+
 		Int maxSize() const;
 
 		EResult draw(Int _size, bool _anySolo, const std::optional<PolyVertsU>& _copiedVerts, const std::optional<IVec>& _copiedVert);

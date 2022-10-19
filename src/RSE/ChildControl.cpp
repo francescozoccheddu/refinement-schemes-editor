@@ -19,7 +19,7 @@ namespace RSE
 		}
 	}
 
-	ChildControl::ChildControl(Int _size) : m_expanded{ false }, m_visible{ true }, m_solo{ false }, m_polyControl{ IPolyControl::cube(_size) }, m_maxSize{ _size }
+	ChildControl::ChildControl(Int _size) : m_expanded{ false }, m_visible{ true }, m_solo{ false }, m_polyControl{ IPolyControl::cubeVerts(0,_size), true }, m_maxSize{ _size }
 	{
 		if (_size <= 0)
 		{
@@ -53,6 +53,12 @@ namespace RSE
 		update();
 	}
 
+	void ChildControl::setActiveVert(std::optional<std::size_t> _index)
+	{
+		m_polyControl.setActiveVert(_index);
+	}
+
+
 	void ChildControl::setExpanded(bool _expanded)
 	{
 		m_expanded = _expanded;
@@ -80,63 +86,49 @@ namespace RSE
 			throw std::logic_error{ "size < maxSize" };
 		}
 		bool updated{ false };
-		// actions
-		{
-			if (ImGui::Button("X"))
-			{
-				return EResult::Removed;
-			}
-			ImGui::SameLine();
-			if (ImGui::SmallButton("C"))
-			{
-				m_polyControl.copy();
-			}
-			if (_copiedVerts.has_value())
-			{
-				ImGui::SameLine();
-				if (ImGui::SmallButton("P"))
-				{
-					m_polyControl.setVerts(_copiedVerts.value());
-					updated = true;
-				}
-			}
-		}
 		// visibility
 		{
-			ImGui::SameLine();
-			ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * (_anySolo && !m_solo) ? 0.5f : 1.0f);
-			ImGui::Checkbox("V", &m_visible);
+			const ImGuiStyle& style{ ImGui::GetStyle() };
+			ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ style.ItemSpacing.x / 2, style.ItemSpacing.y });
+			ImGui::PushStyleVar(ImGuiStyleVar_Alpha, style.Alpha * (_anySolo && !m_solo) ? 0.5f : 1.0f);
+			ImGui::Checkbox("##visible", &m_visible);
 			ImGui::PopStyleVar();
 			m_solo &= m_visible;
 			ImGui::SameLine();
-			ImGui::Checkbox("S", &m_solo);
+			ImGui::Checkbox("##solo", &m_solo);
+			ImGui::PopStyleVar();
 			m_visible |= m_solo;
 		}
-		// vertices
+		// header
+		ImGui::SameLine();
+		ImGui::SetNextItemOpen(m_expanded, ImGuiCond_Once);
+		if (!m_polyControl.valid())
 		{
-			ImGui::SameLine();
-			ImGui::SetNextItemOpen(m_expanded, ImGuiCond_Once);
-			if (!m_polyControl.valid())
-			{
-				ImGui::PushStyleColor(ImGuiCol_Text, ImVec4{ 1.0f,1.0f,0.0f,1.0f });
-			}
-			m_expanded = ImGui::TreeNode("Verts", "Verts%s", m_polyControl.valid() ? "" : " (!)");
-			if (!m_polyControl.valid())
-			{
-				ImGui::PopStyleColor();
-			}
-			if (m_expanded)
-			{
-				ImGui::Unindent(ImGui::GetTreeNodeToLabelSpacing());
-				ImGui::Spacing();
-				updated |= m_polyControl.draw(0, _size, _copiedVert);
-				ImGui::Indent(ImGui::GetTreeNodeToLabelSpacing());
-				ImGui::TreePop();
-			}
+			ImGui::PushStyleColor(ImGuiCol_Text, ImVec4{ 1.0f,1.0f,0.0f,1.0f });
+		}
+		bool keep{ true };
+		m_expanded = ImGui::CollapsingHeader("Verts", &keep);
+		if (!m_polyControl.valid())
+		{
+			ImGui::PopStyleColor();
+		}
+		// vertices
+		if (m_expanded)
+		{
+			ImGui::Spacing();
+			updated |= m_polyControl.draw(0, _size, _copiedVerts, _copiedVert);
+		}
+		else
+		{
+			m_polyControl.setActiveVert(std::nullopt);
 		}
 		if (updated)
 		{
 			update();
+		}
+		if (!keep)
+		{
+			return EResult::Removed;
 		}
 		return updated ? EResult::Updated : EResult::None;
 	}

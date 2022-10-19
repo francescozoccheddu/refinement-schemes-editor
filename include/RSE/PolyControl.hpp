@@ -30,16 +30,18 @@ namespace RSE
 			PolyVertData<unsigned char> m_ids;
 			Verts m_verts;
 			bool m_valid;
+			std::optional<std::size_t> m_activeVert;
+			bool m_vertSelection;
 
 			void update();
 
 		public:
 
+			static Verts cubeVerts(Value _min, Value _max);
+
 			static Verts cubeVerts(Value _size = Value{ 1 });
 
-			static PolyControl cube(Value _size = Value{ 1 });
-
-			PolyControl(const Verts& _verts);
+			PolyControl(const Verts& _verts, bool _vertSelection = false);
 
 			static void copyVert(const Vert& _vert);
 
@@ -55,15 +57,23 @@ namespace RSE
 
 			void setVerts(const Verts& _verts);
 
+			void setActiveVert(std::optional<std::size_t> _index);
+
+			void setVertSelection(bool _enabled);
+
+			bool vertSelection() const;
+
+			std::optional<std::size_t> activeVert() const;
+
 			const Verts& verts() const;
 
 			PolyVertData<std::size_t> firstOccurrenceIndices() const;
 
 			bool valid() const;
 
-			bool draw(Value _min, Value _max, std::optional<Vert>& _copiedVert, bool& _copied);
+			bool draw(Value _min, Value _max, std::optional<Verts>& _copiedVerts, std::optional<Vert>& _copiedVert);
 
-			bool draw(Value _min, Value _max, const std::optional<Vert>& _copiedVert);
+			bool draw(Value _min, Value _max, const std::optional<Verts>& _copiedVerts, const std::optional<Vert>& _copiedVert);
 
 			bool draw(Value _min = Value{ 0 }, Value _max = std::numeric_limits<Value>::max());
 

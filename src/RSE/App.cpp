@@ -12,7 +12,7 @@
 namespace RSE
 {
 
-	App::App() : m_canvas{}, m_axesWidget{ m_canvas.camera }, m_children{}, m_size{ 3 }, m_polyControl{ RPolyControl::cube(1) }
+	App::App() : m_canvas{}, m_axesWidget{ m_canvas.camera }, m_children{}, m_size{ 3 }, m_polyControl{ RPolyControl::cubeVerts(1) }, m_activeChild{}
 	{
 		m_canvas.background = cinolib::Color::hsv2rgb(0.0f, 0.0f, 0.1f);
 		m_canvas.callback_app_controls = [this]() { drawControls(); };
@@ -66,16 +66,22 @@ namespace RSE
 		}
 	}
 
+	void App::doClear()
+	{
+		for (ChildControl* child : m_children)
+		{
+			delete child;
+		}
+		m_children.clear();
+		m_activeChild = nullptr;
+	}
+
 	void App::doLoad()
 	{
 		const std::string filename{ cinolib::file_dialog_open() };
 		if (!filename.empty())
 		{
-			for (ChildControl* child : m_children)
-			{
-				delete child;
-			}
-			m_children.clear();
+			doClear();
 			std::ifstream file{};
 			file.open(filename);
 			file >> m_size;
@@ -117,11 +123,6 @@ namespace RSE
 			{
 
 			}
-			ImGui::Spacing();
-			if (ImGui::Button("Cube"))
-			{
-				m_polyControl.setVerts(RPolyControl::cubeVerts(1.0));
-			}
 		}
 		ImGui::Spacing();
 		if (ImGui::CollapsingHeader("Children"))
@@ -152,13 +153,33 @@ namespace RSE
 				ImGui::PushID(&child);
 				const Style style{ (i / static_cast<float>(m_children.size())) * 360.0f };
 				style.pushImGui();
-				switch (child.draw(m_size, anySolo, copiedVerts, copiedVert))
+				const ChildControl::EResult result{ child.draw(m_size, anySolo, copiedVerts, copiedVert) };
+				if (child.polyControl().activeVert().has_value())
+				{
+					if (m_activeChild != &child)
+					{
+						if (m_activeChild)
+						{
+							m_activeChild->setActiveVert(std::nullopt);
+						}
+						m_activeChild = &child;
+					}
+				}
+				else if (m_activeChild == &child)
+				{
+					m_activeChild = nullptr;
+				}
+				switch (result)
 				{
 					case ChildControl::EResult::Updated:
 						m_size = std::max(m_size, child.maxSize());
 						break;
 					case ChildControl::EResult::Removed:
 						m_children.erase(m_children.begin() + i);
+						if (&child == m_activeChild)
+						{
+							m_activeChild = nullptr;
+						}
 						delete& child;
 						--i;
 						break;
@@ -167,6 +188,11 @@ namespace RSE
 				Style::popImGui();
 				ImGui::PopID();
 			}
+			if (ImGui::Button("Clear"))
+			{
+				doClear();
+			}
+			ImGui::SameLine();
 			if (ImGui::Button("Add"))
 			{
 				m_children.push_back(new ChildControl{ m_size });
