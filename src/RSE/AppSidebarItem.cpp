@@ -13,7 +13,7 @@
 namespace RSE
 {
 
-	AppSidebarItem::AppSidebarItem() : cinolib::SideBarItem{ "App" }, m_children{}, m_size{ 3 }, m_polyControl{ RPolyControl::cubeVerts(1) }, m_activeChild{}
+	AppSidebarItem::AppSidebarItem() : cinolib::SideBarItem{ "App" }, m_children{}, m_size{ 3 }, m_polyControl{ RPolyControl::cubeVerts(1) }, m_activeChild{}, m_expandedChild{}, m_expandSingle{ false }
 	{
 
 	}
@@ -71,7 +71,7 @@ namespace RSE
 			delete child;
 		}
 		m_children.clear();
-		m_activeChild = nullptr;
+		m_expandedChild = m_activeChild = nullptr;
 	}
 
 	void AppSidebarItem::doLoad()
@@ -108,10 +108,11 @@ namespace RSE
 	void AppSidebarItem::updateColors()
 	{}
 
-	void AppSidebarItem::draw() 
+	void AppSidebarItem::draw()
 	{
 		ImGui::Unindent(ImGui::GetTreeNodeToLabelSpacing());
 		ImGui::Spacing();
+		// source
 		if (ImGui::CollapsingHeader("Source"))
 		{
 			ImGui::Spacing();
@@ -122,9 +123,11 @@ namespace RSE
 
 			}
 		}
+		// children
 		ImGui::Spacing();
 		if (ImGui::CollapsingHeader("Children"))
 		{
+			// text
 			ImGui::Spacing();
 			if (m_children.empty())
 			{
@@ -142,6 +145,7 @@ namespace RSE
 				}
 			}
 			ImGui::Spacing();
+			// children
 			const bool anySolo{ hasAnySolo() };
 			std::optional<PolyVertsU> copiedVerts{ IPolyControl::pasteVerts() };
 			std::optional<IVec> copiedVert{ IPolyControl::pasteVert() };
@@ -152,6 +156,21 @@ namespace RSE
 				const Style style{ (i / static_cast<float>(m_children.size())) * 360.0f };
 				style.pushImGui();
 				const ChildControl::EResult result{ child.draw(m_size, anySolo, copiedVerts, copiedVert) };
+				if (&child != m_expandedChild)
+				{
+					if (child.expanded())
+					{
+						if (m_expandedChild && m_expandSingle)
+						{
+							m_expandedChild->setExpanded(false);
+						}
+						m_expandedChild = &child;
+					}
+				}
+				else if (!child.expanded())
+				{
+					m_expandedChild = nullptr;
+				}
 				if (child.polyControl().activeVert().has_value())
 				{
 					if (m_activeChild != &child)
@@ -186,6 +205,7 @@ namespace RSE
 				Style::popImGui();
 				ImGui::PopID();
 			}
+			// action bar
 			if (ImGui::Button("Clear"))
 			{
 				doClear();
@@ -195,7 +215,17 @@ namespace RSE
 			{
 				m_children.push_back(new ChildControl{ m_size });
 			}
+			ImGui::SameLine();
+			if (ImGui::Checkbox("Single mode", &m_expandSingle) && m_expandSingle)
+			{
+				for (ChildControl* child : m_children)
+				{
+					child->setExpanded(false);
+				}
+				m_expandedChild = nullptr;
+			}
 		}
+		// command bar
 		ImGui::Spacing();
 		ImGui::Separator();
 		ImGui::Spacing();

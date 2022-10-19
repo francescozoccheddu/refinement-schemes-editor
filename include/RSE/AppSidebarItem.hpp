@@ -19,7 +19,8 @@ namespace RSE
 		std::vector<ChildControl*> m_children;
 		RPolyControl m_polyControl;
 		Int m_size;
-		ChildControl* m_activeChild;
+		ChildControl* m_activeChild, * m_expandedChild;
+		bool m_expandSingle;
 
 		Int minRequiredSize() const;
 		bool hasAnySolo() const;

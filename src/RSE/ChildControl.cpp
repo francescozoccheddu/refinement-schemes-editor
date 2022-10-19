@@ -92,16 +92,16 @@ namespace RSE
 			ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ style.ItemSpacing.x / 2, style.ItemSpacing.y });
 			ImGui::PushStyleVar(ImGuiStyleVar_Alpha, style.Alpha * (_anySolo && !m_solo) ? 0.5f : 1.0f);
 			ImGui::Checkbox("##visible", &m_visible);
-			ImGui::PopStyleVar();
 			m_solo &= m_visible;
+			ImGui::PopStyleVar();
 			ImGui::SameLine();
 			ImGui::Checkbox("##solo", &m_solo);
-			ImGui::PopStyleVar();
 			m_visible |= m_solo;
+			ImGui::PopStyleVar();
 		}
 		// header
 		ImGui::SameLine();
-		ImGui::SetNextItemOpen(m_expanded, ImGuiCond_Once);
+		ImGui::SetNextItemOpen(m_expanded, ImGuiCond_Always);
 		if (!m_polyControl.valid())
 		{
 			ImGui::PushStyleColor(ImGuiCol_Text, ImVec4{ 1.0f,1.0f,0.0f,1.0f });
