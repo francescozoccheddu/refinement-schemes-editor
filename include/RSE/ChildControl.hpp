@@ -2,6 +2,7 @@
 
 #include <RSE/types.hpp>
 #include <RSE/PolyControl.hpp>
+#include <RSE/Style.hpp>
 #include <optional>
 
 namespace RSE
@@ -17,6 +18,7 @@ namespace RSE
 		bool m_expanded;
 		IPolyControl m_polyControl;
 		Int m_maxSize;
+		Style m_style;
 
 		void update();
 
@@ -29,9 +31,13 @@ namespace RSE
 
 		ChildControl(Int _size);
 
+		Style& style();
+
+		const Style& style() const;
+
 		const IPolyControl& polyControl() const;
 
-		void setVerts(const PolyVertsU& _verts);
+		void setVerts(const HexVertsU& _verts);
 
 		bool visible() const;
 
@@ -49,7 +55,7 @@ namespace RSE
 
 		Int maxSize() const;
 
-		EResult draw(Int _size, bool _anySolo, const std::optional<PolyVertsU>& _copiedVerts, const std::optional<IVec>& _copiedVert);
+		EResult draw(Int _size, bool _anySolo, const std::optional<HexVertsU>& _copiedVerts, const std::optional<IVec3>& _copiedVert);
 
 	};
 

@@ -11,37 +11,31 @@ namespace RSE
 	using Int = int;
 	
 	template<typename TData>
+	using Vec2 = cinolib::vec<2, TData>;
+
+	template<typename TData>
 	using Vec3 = cinolib::vec<3, TData>;
 
-	using RVec = Vec3<Real>;
-	using IVec = Vec3<Int>;
+	using RVec2 = Vec2<Real>;
+	using IVec2 = Vec2<Int>;
 
-	using Id = unsigned int;
-	constexpr Id noId{ static_cast<Id>(-1) };
-
-	template<typename TData>
-	using PolyFaceData = std::array<TData, 6>;
+	using RVec3 = Vec3<Real>;
+	using IVec3 = Vec3<Int>;
 
 	template<typename TData>
-	using PolyEdgeData = std::array<TData, 12>;
-
-	template<typename TData>
-	using PolyVertData = std::array<TData, 8>;
+	using HexVertData = std::array<TData, 8>;
 
 	template<typename TData>
 	using FaceVertData = std::array<TData, 4>;
 
 	template<typename TData>
-	using FaceEdgeData = std::array<TData, 4>;
+	using EdgeVertData = std::array<TData, 2>;
 
-	using PolyVerts = PolyVertData<RVec>;
-	using PolyVertsU = PolyVertData<IVec>;
-	using PolyVertIds = PolyVertData<Id>;
-	using PolyFaceIds = PolyFaceData<Id>;
-	using PolyEdgeIds = PolyEdgeData<Id>;
-	using FaceVerts = FaceVertData<RVec>;
-	using FaceVertsU = FaceVertData<IVec>;
-	using FaceVertIds = FaceVertData<Id>;
-	using FaceEdgeIds = FaceEdgeData<Id>;
+	using HexVerts = HexVertData<RVec3>;
+	using HexVertsU = HexVertData<IVec3>;
+	using FaceVerts = FaceVertData<RVec3>;
+	using FaceVertsU = FaceVertData<IVec3>;
+	using EdgeVerts = FaceVertData<RVec3>;
+	using EdgeVertsU = FaceVertData<IVec3>;
 
 }

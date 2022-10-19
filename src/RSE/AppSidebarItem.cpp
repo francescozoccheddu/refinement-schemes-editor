@@ -3,6 +3,8 @@
 #include <cinolib/color.h>
 #include <cinolib/gl/file_dialog_save.h>
 #include <cinolib/gl/file_dialog_open.h>
+#include <cpputils/serialization/Serializer.hpp>
+#include <cpputils/serialization/Deserializer.hpp>
 #include <stdexcept>
 #include <imgui.h>
 #include <algorithm>
@@ -13,9 +15,8 @@
 namespace RSE
 {
 
-	AppSidebarItem::AppSidebarItem() : cinolib::SideBarItem{ "App" }, m_children{}, m_size{ 3 }, m_polyControl{ RPolyControl::cubeVerts(1) }, m_activeChild{}, m_expandedChild{}, m_expandSingle{ false }
+	AppSidebarItem::AppSidebarItem() : cinolib::SideBarItem{ "App" }, m_children{}, m_sourceSize{ 3 }, m_sourceControl{ RPolyControl::cubeVerts(-c_maxSourceExtent, c_maxSourceExtent) }, m_activeChild{}, m_expandedChild{}, m_expandSingle{ false }, onSourceUpdate{}
 	{
-
 	}
 
 	Int AppSidebarItem::minRequiredSize() const
@@ -50,14 +51,13 @@ namespace RSE
 		{
 			std::ofstream file{};
 			file.open(filename);
-			constexpr char sep{ '\n' };
-			file << m_size << sep;
-			file << m_children.size() << sep;
+			cpputils::serialization::Serializer s{ file };
+			s << m_sourceSize << m_children.size();
 			for (const ChildControl* child : m_children)
 			{
-				for (const IVec& vert : child->polyControl().verts())
+				for (const IVec3& vert : child->polyControl().verts())
 				{
-					file << vert << sep;
+					s << vert.x() << vert.y() << vert.z();
 				}
 			}
 			file.close();
@@ -82,31 +82,53 @@ namespace RSE
 			doClear();
 			std::ifstream file{};
 			file.open(filename);
-			file >> m_size;
+			cpputils::serialization::Deserializer s{ file };
+			s >> m_sourceSize;
 			std::size_t childrenSize{};
-			file >> childrenSize;
+			s >> childrenSize;
 			m_children.reserve(childrenSize);
 			while (childrenSize > 0)
 			{
 				ChildControl& child{ *new ChildControl{1} };
 				m_children.push_back(&child);
-				PolyVertsU verts;
-				for (IVec& vert : verts)
+				HexVertsU verts;
+				for (IVec3& vert : verts)
 				{
-					file >> vert;
+					s >> vert.x() >> vert.y() >> vert.z();
 				}
 				child.setVerts(verts);
 				childrenSize--;
 			}
 			file.close();
+			updateColors();
 		}
 	}
 
 	void AppSidebarItem::doExport() const
 	{}
 
+	const RPolyControl& AppSidebarItem::sourceControl() const
+	{
+		return m_sourceControl;
+	}
+
+	Int AppSidebarItem::sourceSize() const
+	{
+		return m_sourceSize;
+	}
+
+	AppSidebarItem::ChildControls AppSidebarItem::childControls() const
+	{
+		return ChildControls{ m_children };
+	}
+
 	void AppSidebarItem::updateColors()
-	{}
+	{
+		for (std::size_t i{}; i < m_children.size(); i++)
+		{
+			m_children[i]->style() = Style{ (i / static_cast<float>(m_children.size())) * 360.0f };
+		}
+	}
 
 	void AppSidebarItem::draw()
 	{
@@ -115,12 +137,20 @@ namespace RSE
 		// source
 		if (ImGui::CollapsingHeader("Source"))
 		{
+			bool sourceUpdated{ false };
 			ImGui::Spacing();
-			ImGui::DragInt("Size", &m_size, 1.0f / 20.0f, minRequiredSize(), c_maxSize, "%d", ImGuiSliderFlags_AlwaysClamp);
-			ImGui::Spacing();
-			if (m_polyControl.draw(-5.0, 5.0))
+			if (ImGui::DragInt("Size", &m_sourceSize, 1.0f / 100.0f, minRequiredSize(), c_maxSize, "%d", ImGuiSliderFlags_AlwaysClamp))
 			{
-
+				sourceUpdated = true;
+			}
+			ImGui::Spacing();
+			if (m_sourceControl.draw(-c_maxSourceExtent, c_maxSourceExtent))
+			{
+				sourceUpdated = true;
+			}
+			if (sourceUpdated)
+			{
+				onSourceUpdate();
 			}
 		}
 		// children
@@ -146,16 +176,15 @@ namespace RSE
 			}
 			ImGui::Spacing();
 			// children
+			bool shouldUpdateColors{ false };
 			const bool anySolo{ hasAnySolo() };
-			std::optional<PolyVertsU> copiedVerts{ IPolyControl::pasteVerts() };
-			std::optional<IVec> copiedVert{ IPolyControl::pasteVert() };
+			std::optional<HexVertsU> copiedVerts{ IPolyControl::pasteVerts() };
+			std::optional<IVec3> copiedVert{ IPolyControl::pasteVert() };
 			for (std::size_t i{}; i < m_children.size(); i++)
 			{
 				ChildControl& child{ *m_children[i] };
 				ImGui::PushID(&child);
-				const Style style{ (i / static_cast<float>(m_children.size())) * 360.0f };
-				style.pushImGui();
-				const ChildControl::EResult result{ child.draw(m_size, anySolo, copiedVerts, copiedVert) };
+				const ChildControl::EResult result{ child.draw(m_sourceSize, anySolo, copiedVerts, copiedVert) };
 				if (&child != m_expandedChild)
 				{
 					if (child.expanded())
@@ -189,7 +218,7 @@ namespace RSE
 				switch (result)
 				{
 					case ChildControl::EResult::Updated:
-						m_size = std::max(m_size, child.maxSize());
+						m_sourceSize = std::max(m_sourceSize, child.maxSize());
 						break;
 					case ChildControl::EResult::Removed:
 						m_children.erase(m_children.begin() + i);
@@ -197,12 +226,12 @@ namespace RSE
 						{
 							m_activeChild = nullptr;
 						}
+						shouldUpdateColors = true;
 						delete& child;
 						--i;
 						break;
 				}
 				ImGui::Spacing();
-				Style::popImGui();
 				ImGui::PopID();
 			}
 			// action bar
@@ -213,7 +242,8 @@ namespace RSE
 			ImGui::SameLine();
 			if (ImGui::Button("Add"))
 			{
-				m_children.push_back(new ChildControl{ m_size });
+				m_children.push_back(new ChildControl{ m_sourceSize });
+				shouldUpdateColors = true;
 			}
 			ImGui::SameLine();
 			if (ImGui::Checkbox("Single mode", &m_expandSingle) && m_expandSingle)
@@ -223,6 +253,10 @@ namespace RSE
 					child->setExpanded(false);
 				}
 				m_expandedChild = nullptr;
+			}
+			if (shouldUpdateColors)
+			{
+				updateColors();
 			}
 		}
 		// command bar

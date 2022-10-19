@@ -9,11 +9,16 @@ set (CINOLIB_USES_OPENGL_GLFW_IMGUI ON)
 set (cinolib_DIR "external/cinolib")
 find_package (cinolib REQUIRED)
 
+# cpputils
+
+add_subdirectory ("external/cpputils")
+
 # main
 
 add_executable (main
     "src/main.cpp"
     "src/RSE/App.cpp"
+    "src/RSE/Grid.cpp"
     "src/RSE/AxesGuiItem.cpp"
     "src/RSE/AppSidebarItem.cpp"
     "src/RSE/ChildControl.cpp"
@@ -32,4 +37,5 @@ target_include_directories (main
 
 target_link_libraries (main 
     PUBLIC cinolib
+    PUBLIC cpputils
 )

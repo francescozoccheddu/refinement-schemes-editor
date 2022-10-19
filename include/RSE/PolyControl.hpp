@@ -20,14 +20,14 @@ namespace RSE
 
 			using Value = std::conditional_t<TInt, Int, Real>;
 			using Vert = Vec3<Value>;
-			using Verts = PolyVertData<Vert>;
+			using Verts = HexVertData<Vert>;
 
 		private:
 
 			static constexpr std::string_view c_cbVertsPrefix{ TInt ? "rse_polycontrol_int_verts\n" : "rse_polycontrol_real_verts\n" };
 			static constexpr std::string_view c_cbVertPrefix{ TInt ? "rse_polycontrol_int_vert\n" : "rse_polycontrol_real_vert\n" };
 
-			PolyVertData<unsigned char> m_ids;
+			HexVertData<unsigned char> m_ids;
 			Verts m_verts;
 			bool m_valid;
 			std::optional<std::size_t> m_activeVert;
@@ -67,7 +67,7 @@ namespace RSE
 
 			const Verts& verts() const;
 
-			PolyVertData<std::size_t> firstOccurrenceIndices() const;
+			HexVertData<std::size_t> firstOccurrenceIndices() const;
 
 			bool valid() const;
 

@@ -4,9 +4,10 @@
 
 #include <RSE/PolyControl.hpp>
 
+#include <cpputils/serialization/StringSerializer.hpp>
+#include <cpputils/serialization/StringDeserializer.hpp>
 #include <imgui.h>
 #include <glfw/glfw3.h>
-#include <sstream>
 #include <stdexcept>
 
 namespace RSE::internal
@@ -59,10 +60,9 @@ namespace RSE::internal
 	template<bool TInt>
 	void PolyControl<TInt>::copyVert(const Vert& _vert)
 	{
-		std::ostringstream ss{};
-		ss << c_cbVertPrefix;
-		ss << _vert;
-		glfwSetClipboardString(nullptr, ss.str().c_str());
+		cpputils::serialization::StringSerializer s{};
+		s.serializer() << _vert.x() << _vert.y() << _vert.z();
+		glfwSetClipboardString(nullptr, (std::string{ c_cbVertPrefix } + s.string()).c_str());
 	}
 
 	template<bool TInt>
@@ -74,9 +74,9 @@ namespace RSE::internal
 			const std::string_view clipboardStr{ clipboard };
 			if (clipboardStr.starts_with(c_cbVertPrefix))
 			{
+				cpputils::serialization::StringDeserializer s{ clipboardStr.substr(c_cbVertPrefix.size()) };
 				Vert vert;
-				std::istringstream ss{ clipboard + c_cbVertPrefix.size() };
-				ss >> vert;
+				s.deserializer() >> vert.x() >> vert.y() >> vert.z();
 				return vert;
 			}
 		}
@@ -86,13 +86,12 @@ namespace RSE::internal
 	template<bool TInt>
 	void PolyControl<TInt>::copyVerts(const Verts& _verts)
 	{
-		std::ostringstream ss{};
-		ss << c_cbVertsPrefix;
+		cpputils::serialization::StringSerializer s{};
 		for (const Vert& vert : _verts)
 		{
-			ss << vert << "\n";
+			s.serializer() << vert.x() << vert.y() << vert.z();
 		}
-		glfwSetClipboardString(nullptr, ss.str().c_str());
+		glfwSetClipboardString(nullptr, (std::string{ c_cbVertsPrefix } + s.string()).c_str());
 	}
 
 	template<bool TInt>
@@ -104,11 +103,11 @@ namespace RSE::internal
 			const std::string_view clipboardStr{ clipboard };
 			if (clipboardStr.starts_with(c_cbVertsPrefix))
 			{
+				cpputils::serialization::StringDeserializer s{ clipboardStr.substr(c_cbVertsPrefix.size()) };
 				Verts verts;
-				std::istringstream ss{ clipboard + c_cbVertsPrefix.size() };
 				for (Vert& vert : verts)
 				{
-					ss >> vert;
+					s.deserializer() >> vert.x() >> vert.y() >> vert.z();
 				}
 				return verts;
 			}
@@ -189,9 +188,9 @@ namespace RSE::internal
 	}
 
 	template<bool TInt>
-	PolyVertData<std::size_t> PolyControl<TInt>::firstOccurrenceIndices() const
+	HexVertData<std::size_t> PolyControl<TInt>::firstOccurrenceIndices() const
 	{
-		PolyVertData<std::size_t> indices;
+		HexVertData<std::size_t> indices;
 		for (std::size_t i{}; i < m_verts.size(); i++)
 		{
 			indices[i] = i;
@@ -240,7 +239,7 @@ namespace RSE::internal
 		ImGui::Spacing();
 		const ImVec2 lineSize{ ImGui::GetColumnWidth(), ImGui::GetFrameHeight() };
 		const float textYOffs{ (lineSize.y - ImGui::GetTextLineHeight()) / 2 };
-		const PolyVertData<std::size_t> firstIs{ firstOccurrenceIndices() };
+		const HexVertData<std::size_t> firstIs{ firstOccurrenceIndices() };
 		for (std::size_t i{}; i < m_verts.size(); i++)
 		{
 			ImGui::PushID(m_ids[i]);
@@ -296,7 +295,7 @@ namespace RSE::internal
 			Vert& vert{ m_verts[i] };
 			{
 				std::conditional_t<TInt, int, float> xyz[3]{ static_cast<Value>(vert.x()), static_cast<Value>(vert.y()), static_cast<Value>(vert.z()) };
-				const float speed{ static_cast<float>(_max - _min) / 50.0f };
+				const float speed{ static_cast<float>(_max - _min) / 100.0f };
 				bool vertUpdated;
 				if constexpr (TInt)
 				{

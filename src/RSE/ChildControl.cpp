@@ -13,18 +13,28 @@ namespace RSE
 	void ChildControl::update()
 	{
 		m_maxSize = 0;
-		for (const IVec& vert : m_polyControl.verts())
+		for (const IVec3& vert : m_polyControl.verts())
 		{
 			m_maxSize = std::max({ m_maxSize, vert.x(), vert.y(), vert.z() });
 		}
 	}
 
-	ChildControl::ChildControl(Int _size) : m_expanded{ false }, m_visible{ true }, m_solo{ false }, m_polyControl{ IPolyControl::cubeVerts(0,_size), true }, m_maxSize{ _size }
+	ChildControl::ChildControl(Int _size) : m_expanded{ false }, m_visible{ true }, m_solo{ false }, m_polyControl{ IPolyControl::cubeVerts(0,_size), true }, m_maxSize{ _size }, m_style{ 0.0f,0.0f,0.5f }
 	{
 		if (_size <= 0)
 		{
 			throw std::logic_error{ "size must be positive" };
 		}
+	}
+
+	Style& ChildControl::style()
+	{
+		return m_style;
+	}
+
+	const Style& ChildControl::style() const
+	{
+		return m_style;
 	}
 
 	const IPolyControl& ChildControl::polyControl() const
@@ -47,7 +57,7 @@ namespace RSE
 		return m_expanded;
 	}
 
-	void ChildControl::setVerts(const PolyVertsU& _verts)
+	void ChildControl::setVerts(const HexVertsU& _verts)
 	{
 		m_polyControl.setVerts(_verts);
 		update();
@@ -79,8 +89,9 @@ namespace RSE
 		return m_maxSize;
 	}
 
-	ChildControl::EResult ChildControl::draw(Int _size, bool _anySolo, const std::optional<PolyVertsU>& _copiedVerts, const std::optional<IVec>& _copiedVert)
+	ChildControl::EResult ChildControl::draw(Int _size, bool _anySolo, const std::optional<HexVertsU>& _copiedVerts, const std::optional<IVec3>& _copiedVert)
 	{
+		m_style.pushImGui();
 		if (_size < m_maxSize)
 		{
 			throw std::logic_error{ "size < maxSize" };
@@ -122,6 +133,7 @@ namespace RSE
 		{
 			m_polyControl.setActiveVert(std::nullopt);
 		}
+		Style::popImGui();
 		if (updated)
 		{
 			update();

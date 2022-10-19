@@ -5,6 +5,8 @@
 #include <RSE/ChildControl.hpp>
 #include <RSE/PolyControl.hpp>
 #include <vector>
+#include <cpputils/collections/Event.hpp>
+#include <cpputils/collections/DereferenceIterable.hpp>
 
 namespace RSE
 {
@@ -12,13 +14,18 @@ namespace RSE
 	class AppSidebarItem final : public cinolib::SideBarItem
 	{
 
+	public:
+
+		using ChildControls = cpputils::collections::DereferenceIterable<const std::vector<ChildControl*>, const ChildControl&>;
+
 	private:
 
 		static constexpr Int c_maxSize{ 10 };
+		static constexpr Real c_maxSourceExtent{ 5 };
 
 		std::vector<ChildControl*> m_children;
-		RPolyControl m_polyControl;
-		Int m_size;
+		RPolyControl m_sourceControl;
+		Int m_sourceSize;
 		ChildControl* m_activeChild, * m_expandedChild;
 		bool m_expandSingle;
 
@@ -34,6 +41,14 @@ namespace RSE
 	public:
 
 		AppSidebarItem();
+
+		cpputils::collections::Event<AppSidebarItem> onSourceUpdate;
+
+		const RPolyControl& sourceControl() const;
+
+		Int sourceSize() const;
+
+		ChildControls childControls() const;
 
 		void draw() override final;
 
