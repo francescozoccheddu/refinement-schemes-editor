@@ -106,6 +106,7 @@ namespace RSE
 
 	void App::drawControls()
 	{
+		ImGui::Unindent(ImGui::GetTreeNodeToLabelSpacing());
 		ImGui::Spacing();
 		ImGui::DragInt("Size", &m_size, 1.0f / 20.0f, minRequiredSize(), c_maxSize, "%d", ImGuiSliderFlags_AlwaysClamp);
 		ImGui::Spacing();

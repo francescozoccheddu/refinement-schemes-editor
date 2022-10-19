@@ -14,6 +14,7 @@ namespace RSE
 
 		bool m_valid;
 		PolyVertsU m_verts;
+		PolyVertData<char> m_vertIds;
 		bool m_visible;
 		bool m_solo;
 		bool m_expanded;
@@ -43,6 +44,12 @@ namespace RSE
 		bool valid() const;
 
 		void setVerts(const PolyVertsU& _verts);
+
+		void setExpanded(bool _expanded);
+
+		void setSolo(bool _solo);
+		
+		void setVisible(bool _visible);
 
 		Int maxSize() const;
 
