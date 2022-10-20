@@ -1,7 +1,7 @@
 #pragma once
 
 #include <RSE/types.hpp>
-#include <RSE/PolyControl.hpp>
+#include <RSE/HexControl.hpp>
 #include <RSE/Style.hpp>
 #include <optional>
 
@@ -16,7 +16,7 @@ namespace RSE
 		bool m_visible;
 		bool m_solo;
 		bool m_expanded;
-		IPolyControl m_polyControl;
+		IHexControl m_hexControl;
 		Int m_maxSize;
 		Style m_style;
 
@@ -35,7 +35,7 @@ namespace RSE
 
 		const Style& style() const;
 
-		const IPolyControl& polyControl() const;
+		const IHexControl& hexControl() const;
 
 		void setVerts(const HexVertsU& _verts);
 

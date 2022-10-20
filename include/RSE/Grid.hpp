@@ -52,7 +52,15 @@ namespace RSE
 
 		void make(Int _size, const HexVerts& _verts);
 
-		RVec3 get(const IVec3& _coords) const;
+		const std::vector<FastVert>& points() const;
+
+		CastResult<std::vector<RVec3>> realPoints() const;
+
+		std::size_t index(const IVec3& _coords) const;
+
+		HexVerts points(const HexVertsU& _coords) const;
+
+		RVec3 point(const IVec3& _coords) const;
 
 		IVec3 closestToRay(const RVec3& _origin, const RVec3 _dir) const;
 

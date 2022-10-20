@@ -11,11 +11,12 @@
 #include <fstream>
 #include <string>
 #include <RSE/Style.hpp>
+#include <iterator>
 
 namespace RSE
 {
 
-	AppSidebarItem::AppSidebarItem() : cinolib::SideBarItem{ "App" }, m_children{}, m_sourceSize{ 3 }, m_sourceControl{ RPolyControl::cubeVerts(-c_maxSourceExtent, c_maxSourceExtent) }, m_activeChild{}, m_expandedChild{}, m_expandSingle{ false }, onSourceUpdate{}
+	AppSidebarItem::AppSidebarItem() : cinolib::SideBarItem{ "App" }, m_children{}, m_sourceSize{ 3 }, m_sourceControl{ RHexControl::cubeVerts(-c_maxSourceExtent, c_maxSourceExtent) }, m_activeChild{}, m_expandedChild{}, m_expandSingle{ false }, onSourceUpdate{}, m_hasAnySolo{ false }
 	{
 	}
 
@@ -32,18 +33,6 @@ namespace RSE
 		return minSize;
 	}
 
-	bool AppSidebarItem::hasAnySolo() const
-	{
-		for (const ChildControl* child : m_children)
-		{
-			if (child->solo())
-			{
-				return true;
-			}
-		}
-		return false;
-	}
-
 	void AppSidebarItem::doSave() const
 	{
 		const std::string filename{ cinolib::file_dialog_save() };
@@ -55,7 +44,7 @@ namespace RSE
 			s << m_sourceSize << m_children.size();
 			for (const ChildControl* child : m_children)
 			{
-				for (const IVec3& vert : child->polyControl().verts())
+				for (const IVec3& vert : child->hexControl().verts())
 				{
 					s << vert.x() << vert.y() << vert.z();
 				}
@@ -72,6 +61,8 @@ namespace RSE
 		}
 		m_children.clear();
 		m_expandedChild = m_activeChild = nullptr;
+		m_hasAnySolo = false;
+		onChildrenClear();
 	}
 
 	void AppSidebarItem::doLoad()
@@ -98,16 +89,17 @@ namespace RSE
 				}
 				child.setVerts(verts);
 				childrenSize--;
+				onChildAdd();
 			}
 			file.close();
-			updateColors();
+			doUpdateColors();
 		}
 	}
 
 	void AppSidebarItem::doExport() const
 	{}
 
-	const RPolyControl& AppSidebarItem::sourceControl() const
+	const RHexControl& AppSidebarItem::sourceControl() const
 	{
 		return m_sourceControl;
 	}
@@ -122,12 +114,18 @@ namespace RSE
 		return ChildControls{ m_children };
 	}
 
-	void AppSidebarItem::updateColors()
+	void AppSidebarItem::doUpdateColors()
 	{
 		for (std::size_t i{}; i < m_children.size(); i++)
 		{
 			m_children[i]->style() = Style{ (i / static_cast<float>(m_children.size())) * 360.0f };
+			onChildUpdate(i);
 		}
+	}
+
+	bool AppSidebarItem::visible(const ChildControl& _child) const
+	{
+		return _child.visible() && (!m_hasAnySolo || _child.solo());
 	}
 
 	void AppSidebarItem::draw()
@@ -177,14 +175,18 @@ namespace RSE
 			ImGui::Spacing();
 			// children
 			bool shouldUpdateColors{ false };
-			const bool anySolo{ hasAnySolo() };
-			std::optional<HexVertsU> copiedVerts{ IPolyControl::pasteVerts() };
-			std::optional<IVec3> copiedVert{ IPolyControl::pasteVert() };
+			std::optional<HexVertsU> copiedVerts{ IHexControl::pasteVerts() };
+			std::optional<IVec3> copiedVert{ IHexControl::pasteVert() };
 			for (std::size_t i{}; i < m_children.size(); i++)
 			{
 				ChildControl& child{ *m_children[i] };
 				ImGui::PushID(&child);
-				const ChildControl::EResult result{ child.draw(m_sourceSize, anySolo, copiedVerts, copiedVert) };
+				bool shouldUpdateChild{ false };
+				const bool wasVisible{ visible(child) };
+				const bool wasExpanded{ child.expanded() };
+				const ChildControl::EResult result{ child.draw(m_sourceSize, m_hasAnySolo, copiedVerts, copiedVert) };
+				shouldUpdateChild |= wasVisible != visible(child);
+				shouldUpdateChild |= wasExpanded != child.expanded();
 				if (&child != m_expandedChild)
 				{
 					if (child.expanded())
@@ -192,6 +194,10 @@ namespace RSE
 						if (m_expandedChild && m_expandSingle)
 						{
 							m_expandedChild->setExpanded(false);
+							if (!shouldUpdateColors)
+							{
+								onChildUpdate(std::distance(m_children.begin(), std::find(m_children.begin(), m_children.end(), m_expandedChild)));
+							}
 						}
 						m_expandedChild = &child;
 					}
@@ -200,7 +206,7 @@ namespace RSE
 				{
 					m_expandedChild = nullptr;
 				}
-				if (child.polyControl().activeVert().has_value())
+				if (child.hexControl().activeVert().has_value())
 				{
 					if (m_activeChild != &child)
 					{
@@ -218,9 +224,12 @@ namespace RSE
 				switch (result)
 				{
 					case ChildControl::EResult::Updated:
+						shouldUpdateChild = true;
 						m_sourceSize = std::max(m_sourceSize, child.maxSize());
 						break;
 					case ChildControl::EResult::Removed:
+						shouldUpdateChild = false;
+						onChildRemove(i);
 						m_children.erase(m_children.begin() + i);
 						if (&child == m_activeChild)
 						{
@@ -230,6 +239,10 @@ namespace RSE
 						delete& child;
 						--i;
 						break;
+				}
+				if (shouldUpdateChild && !shouldUpdateColors)
+				{
+					onChildUpdate(i);
 				}
 				ImGui::Spacing();
 				ImGui::PopID();
@@ -244,19 +257,42 @@ namespace RSE
 			{
 				m_children.push_back(new ChildControl{ m_sourceSize });
 				shouldUpdateColors = true;
+				onChildAdd();
 			}
 			ImGui::SameLine();
 			if (ImGui::Checkbox("Single mode", &m_expandSingle) && m_expandSingle)
 			{
-				for (ChildControl* child : m_children)
+				for (std::size_t i{}; i < m_children.size(); i++)
 				{
-					child->setExpanded(false);
+					const bool wasExpanded{ m_children[i]->expanded() };
+					m_children[i]->setExpanded(false);
+					if (!shouldUpdateColors && wasExpanded)
+					{
+						onChildUpdate(i);
+					}
 				}
 				m_expandedChild = nullptr;
 			}
+			const bool hadAnySolo{ m_hasAnySolo };
+			m_hasAnySolo = false;
+			for (const ChildControl* child : m_children)
+			{
+				if (child->solo())
+				{
+					m_hasAnySolo = true;
+					break;
+				}
+			}
 			if (shouldUpdateColors)
 			{
-				updateColors();
+				doUpdateColors();
+			}
+			else if (m_hasAnySolo != hadAnySolo)
+			{
+				for (std::size_t i{}; i < m_children.size(); i++)
+				{
+					onChildUpdate(i);
+				}
 			}
 		}
 		// command bar

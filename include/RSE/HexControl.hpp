@@ -13,7 +13,7 @@ namespace RSE
 	{
 
 		template<bool TInt>
-		class PolyControl final
+		class HexControl final
 		{
 
 		public:
@@ -24,8 +24,8 @@ namespace RSE
 
 		private:
 
-			static constexpr std::string_view c_cbVertsPrefix{ TInt ? "rse_polycontrol_int_verts\n" : "rse_polycontrol_real_verts\n" };
-			static constexpr std::string_view c_cbVertPrefix{ TInt ? "rse_polycontrol_int_vert\n" : "rse_polycontrol_real_vert\n" };
+			static constexpr std::string_view c_cbVertsPrefix{ TInt ? "rse_HexControl_int_verts\n" : "rse_HexControl_real_verts\n" };
+			static constexpr std::string_view c_cbVertPrefix{ TInt ? "rse_HexControl_int_vert\n" : "rse_HexControl_real_vert\n" };
 
 			HexVertData<unsigned char> m_ids;
 			Verts m_verts;
@@ -41,7 +41,7 @@ namespace RSE
 
 			static Verts cubeVerts(Value _size = Value{ 1 });
 
-			PolyControl(const Verts& _verts, bool _vertSelection = false);
+			HexControl(const Verts& _verts, bool _vertSelection = false);
 
 			static void copyVert(const Vert& _vert);
 
@@ -51,7 +51,7 @@ namespace RSE
 
 			static std::optional<Verts> pasteVerts();
 
-			static std::optional<PolyControl> paste();
+			static std::optional<HexControl> paste();
 
 			void copy() const;
 
@@ -81,12 +81,12 @@ namespace RSE
 
 	}
 
-	using IPolyControl = internal::PolyControl<true>;
+	using IHexControl = internal::HexControl<true>;
 
-	using RPolyControl = internal::PolyControl<false>;
+	using RHexControl = internal::HexControl<false>;
 
 }
 
-#define RSE_POLYCONTROL_TPP
-#include <RSE/PolyControl.tpp>
-#undef RSE_POLYCONTROL_TPP
+#define RSE_HEXCONTROL_TPP
+#include <RSE/HexControl.tpp>
+#undef RSE_HEXCONTROL_TPP

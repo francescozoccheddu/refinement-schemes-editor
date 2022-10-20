@@ -3,7 +3,7 @@
 #include <cinolib/gl/side_bar_item.h>
 #include <RSE/types.hpp>
 #include <RSE/ChildControl.hpp>
-#include <RSE/PolyControl.hpp>
+#include <RSE/HexControl.hpp>
 #include <vector>
 #include <cpputils/collections/Event.hpp>
 #include <cpputils/collections/DereferenceIterable.hpp>
@@ -24,29 +24,35 @@ namespace RSE
 		static constexpr Real c_maxSourceExtent{ 5 };
 
 		std::vector<ChildControl*> m_children;
-		RPolyControl m_sourceControl;
+		RHexControl m_sourceControl;
 		Int m_sourceSize;
 		ChildControl* m_activeChild, * m_expandedChild;
 		bool m_expandSingle;
+		bool m_hasAnySolo;
 
 		Int minRequiredSize() const;
-		bool hasAnySolo() const;
 		void drawControls();
 		void doClear();
 		void doSave() const;
 		void doLoad();
 		void doExport() const;
-		void updateColors();
+		void doUpdateColors();
 
 	public:
 
 		AppSidebarItem();
 
 		cpputils::collections::Event<AppSidebarItem> onSourceUpdate;
+		cpputils::collections::Event<AppSidebarItem> onChildrenClear;
+		cpputils::collections::Event<AppSidebarItem> onChildAdd;
+		cpputils::collections::Event<AppSidebarItem, std::size_t> onChildRemove;
+		cpputils::collections::Event<AppSidebarItem, std::size_t> onChildUpdate;
 
-		const RPolyControl& sourceControl() const;
+		const RHexControl& sourceControl() const;
 
 		Int sourceSize() const;
+
+		bool visible(const ChildControl& _child) const;
 
 		ChildControls childControls() const;
 

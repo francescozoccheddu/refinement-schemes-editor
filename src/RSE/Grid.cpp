@@ -17,9 +17,9 @@ namespace RSE
 
 	typename Grid::FastVert Grid::lerp3(const FastHex& _src, const FastVert& _alpha)
 	{
-		const FastVert  y1 = lerp2(FastFace{ _src[0], _src[1], _src[2], _src[3] }, FastVec2{ _alpha.x(), _alpha.y() });
-		const FastVert  y2 = lerp2(FastFace{ _src[4], _src[5], _src[6], _src[7] }, FastVec2{ _alpha.x(), _alpha.y() });
-		return lerp1({ y1, y2 }, _alpha.z());
+		const FastVert z1 = lerp2(FastFace{ _src[0], _src[1], _src[2], _src[3] }, FastVec2{ _alpha.x(), _alpha.y() });
+		const FastVert z2 = lerp2(FastFace{ _src[4], _src[5], _src[6], _src[7] }, FastVec2{ _alpha.x(), _alpha.y() });
+		return lerp1({ z1, z2 }, _alpha.z());
 	}
 
 	template<typename TOut, typename TIn>
@@ -87,33 +87,71 @@ namespace RSE
 			throw std::logic_error{ "size must be positive" };
 		}
 		m_size = _size;
-		const FastHex sourcePoly{ cast(_verts) };
+		const FastHex sourceHex{ cast(_verts) };
 		const Int layers{ _size + 1 };
 		m_points.resize(static_cast<std::size_t>(layers * layers * layers));
 		std::size_t i{};
 		IVec3 coord;
-		for (Int x{}; x < layers; x++)
+		for (Int z{}; z < layers; z++)
 		{
-			coord.x() = x;
+			coord.z() = z;
 			for (Int y{}; y < layers; y++)
 			{
 				coord.y() = y;
-				for (Int z{}; z < layers; z++)
+				for (Int x{}; x < layers; x++)
 				{
-					coord.z() = z;
-					m_points[i++] = lerp3(sourcePoly, cast(coord) / static_cast<FastValue>(_size));
+					coord.x() = x;
+					m_points[i++] = lerp3(sourceHex, cast(coord) / static_cast<FastValue>(_size));
 				}
 			}
 		}
 	}
 
-	RVec3 Grid::get(const IVec3& _coords) const
+	const std::vector<Grid::FastVert>& Grid::points() const
+	{
+		return m_points;
+	}
+
+	typename Grid::CastResult<std::vector<RVec3>> Grid::realPoints() const
+	{
+		if constexpr (c_isReal)
+		{
+			return m_points;
+		}
+		else
+		{
+			std::vector<RVec3> out{};
+			out.resize(m_points.size());
+			for (std::size_t i{}; i < out.size(); i++)
+			{
+				out[i] = cast(m_points[i]);
+			}
+			return out;
+		}
+	}
+
+	std::size_t Grid::index(const IVec3& _coords) const
 	{
 		assert(_coords[0] >= 0 && _coords[0] <= m_size);
 		assert(_coords[1] >= 0 && _coords[1] <= m_size);
 		assert(_coords[2] >= 0 && _coords[2] <= m_size);
 		const std::size_t layers{ static_cast<std::size_t>(m_size + 1) };
-		return cast(m_points[static_cast<std::size_t>(_coords.x() * layers * layers + _coords.y() * layers + _coords.z())]);
+		return static_cast<std::size_t>(_coords.z() * layers * layers + _coords.y() * layers + _coords.x());
+	}
+
+	HexVerts Grid::points(const HexVertsU& _coords) const
+	{
+		HexVerts verts;
+		for (std::size_t i{}; i < verts.size(); i++)
+		{
+			verts[i] = point(_coords[i]);
+		}
+		return verts;
+	}
+
+	RVec3 Grid::point(const IVec3& _coords) const
+	{
+		return cast(m_points[index(_coords)]);
 	}
 
 	IVec3 Grid::closestToRay(const RVec3& _origin, const RVec3 _dir) const

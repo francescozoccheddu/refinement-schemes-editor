@@ -13,13 +13,13 @@ namespace RSE
 	void ChildControl::update()
 	{
 		m_maxSize = 0;
-		for (const IVec3& vert : m_polyControl.verts())
+		for (const IVec3& vert : m_hexControl.verts())
 		{
 			m_maxSize = std::max({ m_maxSize, vert.x(), vert.y(), vert.z() });
 		}
 	}
 
-	ChildControl::ChildControl(Int _size) : m_expanded{ false }, m_visible{ true }, m_solo{ false }, m_polyControl{ IPolyControl::cubeVerts(0,_size), true }, m_maxSize{ _size }, m_style{ 0.0f,0.0f,0.5f }
+	ChildControl::ChildControl(Int _size) : m_expanded{ false }, m_visible{ true }, m_solo{ false }, m_hexControl{ IHexControl::cubeVerts(0,_size), true }, m_maxSize{ _size }, m_style{ 0.0f,0.0f,0.5f }
 	{
 		if (_size <= 0)
 		{
@@ -37,9 +37,9 @@ namespace RSE
 		return m_style;
 	}
 
-	const IPolyControl& ChildControl::polyControl() const
+	const IHexControl& ChildControl::hexControl() const
 	{
-		return m_polyControl;
+		return m_hexControl;
 	}
 
 	bool ChildControl::visible() const
@@ -59,13 +59,13 @@ namespace RSE
 
 	void ChildControl::setVerts(const HexVertsU& _verts)
 	{
-		m_polyControl.setVerts(_verts);
+		m_hexControl.setVerts(_verts);
 		update();
 	}
 
 	void ChildControl::setActiveVert(std::optional<std::size_t> _index)
 	{
-		m_polyControl.setActiveVert(_index);
+		m_hexControl.setActiveVert(_index);
 	}
 
 
@@ -113,13 +113,13 @@ namespace RSE
 		// header
 		ImGui::SameLine();
 		ImGui::SetNextItemOpen(m_expanded, ImGuiCond_Always);
-		if (!m_polyControl.valid())
+		if (!m_hexControl.valid())
 		{
 			ImGui::PushStyleColor(ImGuiCol_Text, ImVec4{ 1.0f,1.0f,0.0f,1.0f });
 		}
 		bool keep{ true };
 		m_expanded = ImGui::CollapsingHeader("Verts", &keep);
-		if (!m_polyControl.valid())
+		if (!m_hexControl.valid())
 		{
 			ImGui::PopStyleColor();
 		}
@@ -127,11 +127,11 @@ namespace RSE
 		if (m_expanded)
 		{
 			ImGui::Spacing();
-			updated |= m_polyControl.draw(0, _size, _copiedVerts, _copiedVert);
+			updated |= m_hexControl.draw(0, _size, _copiedVerts, _copiedVert);
 		}
 		else
 		{
-			m_polyControl.setActiveVert(std::nullopt);
+			m_hexControl.setActiveVert(std::nullopt);
 		}
 		Style::popImGui();
 		if (updated)

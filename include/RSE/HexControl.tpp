@@ -1,9 +1,10 @@
-#ifndef RSE_POLYCONTROL_TPP
+#ifndef RSE_HEXCONTROL_TPP
 #error __FILE__ cannot be included directly
 #endif
 
-#include <RSE/PolyControl.hpp>
+#include <RSE/HexControl.hpp>
 
+#include <RSE/hexUtils.hpp>
 #include <cpputils/serialization/StringSerializer.hpp>
 #include <cpputils/serialization/StringDeserializer.hpp>
 #include <imgui.h>
@@ -14,7 +15,7 @@ namespace RSE::internal
 {
 
 	template<bool TInt>
-	void PolyControl<TInt>::update()
+	void HexControl<TInt>::update()
 	{
 		m_valid = true;
 		for (std::size_t i{}; i < m_verts.size(); i++)
@@ -31,23 +32,19 @@ namespace RSE::internal
 	}
 
 	template<bool TInt>
-	PolyControl<TInt>::Verts PolyControl<TInt>::cubeVerts(Value _min, Value _max)
+	HexControl<TInt>::Verts HexControl<TInt>::cubeVerts(Value _min, Value _max)
 	{
-		if (_min > _max)
-		{
-			throw std::logic_error{ "min > max" };
-		}
-		return Verts{ Vert{ _min,_min,_min }, Vert{ _min,_min,_max }, Vert{ _min,_max,_min }, Vert{ _min,_max,_max }, Vert{ _max,_min,_min }, Vert{ _max,_min,_max }, Vert{ _max,_max,_min }, Vert{ _max,_max,_max } };
+		return hexUtils::cubeVerts<Value>(_min, _max);
 	}
 
 	template<bool TInt>
-	PolyControl<TInt>::Verts PolyControl<TInt>::cubeVerts(Value _size)
+	HexControl<TInt>::Verts HexControl<TInt>::cubeVerts(Value _size)
 	{
-		return cubeVerts(-_size / 2, _size / 2);
+		return hexUtils::cubeVerts<Value>(_size);
 	}
 
 	template<bool TInt>
-	PolyControl<TInt>::PolyControl(const Verts& _verts, bool _vertSelection) :
+	HexControl<TInt>::HexControl(const Verts& _verts, bool _vertSelection) :
 		m_verts{ _verts },
 		m_ids{ 0,1,2,3,4,5,6,7 },
 		m_valid{},
@@ -58,7 +55,7 @@ namespace RSE::internal
 	}
 
 	template<bool TInt>
-	void PolyControl<TInt>::copyVert(const Vert& _vert)
+	void HexControl<TInt>::copyVert(const Vert& _vert)
 	{
 		cpputils::serialization::StringSerializer s{};
 		s.serializer() << _vert.x() << _vert.y() << _vert.z();
@@ -66,7 +63,7 @@ namespace RSE::internal
 	}
 
 	template<bool TInt>
-	std::optional<typename PolyControl<TInt>::Vert> PolyControl<TInt>::pasteVert()
+	std::optional<typename HexControl<TInt>::Vert> HexControl<TInt>::pasteVert()
 	{
 		const char* const clipboard{ glfwGetClipboardString(nullptr) };
 		if (clipboard)
@@ -84,7 +81,7 @@ namespace RSE::internal
 	}
 
 	template<bool TInt>
-	void PolyControl<TInt>::copyVerts(const Verts& _verts)
+	void HexControl<TInt>::copyVerts(const Verts& _verts)
 	{
 		cpputils::serialization::StringSerializer s{};
 		for (const Vert& vert : _verts)
@@ -95,7 +92,7 @@ namespace RSE::internal
 	}
 
 	template<bool TInt>
-	std::optional<typename PolyControl<TInt>::Verts> PolyControl<TInt>::pasteVerts()
+	std::optional<typename HexControl<TInt>::Verts> HexControl<TInt>::pasteVerts()
 	{
 		const char* const clipboard{ glfwGetClipboardString(nullptr) };
 		if (clipboard)
@@ -116,31 +113,31 @@ namespace RSE::internal
 	}
 
 	template<bool TInt>
-	std::optional<typename PolyControl<TInt>> PolyControl<TInt>::paste()
+	std::optional<typename HexControl<TInt>> HexControl<TInt>::paste()
 	{
 		std::optional<Verts> verts{ pasteVerts() };
 		if (verts.has_value())
 		{
-			return PolyControl{ verts.value() };
+			return HexControl{ verts.value() };
 		}
 		return std::nullopt;
 	}
 
 	template<bool TInt>
-	void PolyControl<TInt>::copy() const
+	void HexControl<TInt>::copy() const
 	{
 		copyVerts(m_verts);
 	}
 
 	template<bool TInt>
-	void PolyControl<TInt>::setVerts(const Verts& _verts)
+	void HexControl<TInt>::setVerts(const Verts& _verts)
 	{
 		m_verts = _verts;
 		update();
 	}
 
 	template<bool TInt>
-	void PolyControl<TInt>::setActiveVert(std::optional<std::size_t> _index)
+	void HexControl<TInt>::setActiveVert(std::optional<std::size_t> _index)
 	{
 		if (!m_vertSelection)
 		{
@@ -154,7 +151,7 @@ namespace RSE::internal
 	}
 
 	template<bool TInt>
-	void PolyControl<TInt>::setVertSelection(bool _enabled)
+	void HexControl<TInt>::setVertSelection(bool _enabled)
 	{
 		m_vertSelection = _enabled;
 		if (!m_vertSelection)
@@ -164,31 +161,31 @@ namespace RSE::internal
 	}
 
 	template<bool TInt>
-	bool PolyControl<TInt>::vertSelection() const
+	bool HexControl<TInt>::vertSelection() const
 	{
 		return m_vertSelection;
 	}
 
 	template<bool TInt>
-	std::optional<std::size_t> PolyControl<TInt>::activeVert() const
+	std::optional<std::size_t> HexControl<TInt>::activeVert() const
 	{
 		return m_activeVert;
 	}
 
 	template<bool TInt>
-	const typename PolyControl<TInt>::Verts& PolyControl<TInt>::verts() const
+	const typename HexControl<TInt>::Verts& HexControl<TInt>::verts() const
 	{
 		return m_verts;
 	}
 
 	template<bool TInt>
-	bool PolyControl<TInt>::valid() const
+	bool HexControl<TInt>::valid() const
 	{
 		return m_valid;
 	}
 
 	template<bool TInt>
-	HexVertData<std::size_t> PolyControl<TInt>::firstOccurrenceIndices() const
+	HexVertData<std::size_t> HexControl<TInt>::firstOccurrenceIndices() const
 	{
 		HexVertData<std::size_t> indices;
 		for (std::size_t i{}; i < m_verts.size(); i++)
@@ -207,7 +204,7 @@ namespace RSE::internal
 	}
 
 	template<bool TInt>
-	bool PolyControl<TInt>::draw(Value _min, Value _max, std::optional<Verts>& _copiedVerts, std::optional<Vert>& _copiedVert)
+	bool HexControl<TInt>::draw(Value _min, Value _max, std::optional<Verts>& _copiedVerts, std::optional<Vert>& _copiedVert)
 	{
 		if (_min > _max)
 		{
@@ -219,6 +216,15 @@ namespace RSE::internal
 		{
 			m_verts = cubeVerts(_min, _max);
 			updated = true;
+		}
+		if (m_valid)
+		{
+			ImGui::SameLine();
+			if (ImGui::SmallButton("Sort"))
+			{
+				m_verts = hexUtils::sortVerts(m_verts);
+				updated = true;
+			}
 		}
 		// copy/paste
 		ImGui::SameLine();
@@ -338,7 +344,7 @@ namespace RSE::internal
 	}
 
 	template<bool TInt>
-	bool PolyControl<TInt>::draw(Value _min, Value _max, const std::optional<Verts>& _copiedVerts, const std::optional<Vert>& _copiedVert)
+	bool HexControl<TInt>::draw(Value _min, Value _max, const std::optional<Verts>& _copiedVerts, const std::optional<Vert>& _copiedVert)
 	{
 		std::optional<Verts> tempVerts{ _copiedVerts };
 		std::optional<Vert> tempVert{ _copiedVert };
@@ -355,7 +361,7 @@ namespace RSE::internal
 	}
 
 	template<bool TInt>
-	bool PolyControl<TInt>::draw(Value _min, Value _max)
+	bool HexControl<TInt>::draw(Value _min, Value _max)
 	{
 		return draw(_min, _max, pasteVerts(), pasteVert());
 	}
