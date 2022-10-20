@@ -40,26 +40,31 @@ namespace RSE
 		cpputils::collections::Event<AppSidebarItem> onSourceUpdate;
 		cpputils::collections::Event<AppSidebarItem> onChildrenClear;
 		cpputils::collections::Event<AppSidebarItem> onChildAdd;
+		cpputils::collections::Event<AppSidebarItem> onActiveVertChange;
 		cpputils::collections::Event<AppSidebarItem, std::size_t> onChildRemove;
 		cpputils::collections::Event<AppSidebarItem, std::size_t> onChildUpdate;
 
-		void doClear();
+		void clear();
 
-		void doSave() const;
+		void save() const;
 
-		void doAddChild();
+		void addChild();
 
-		void doRemoveChild(std::size_t _child);
+		void removeChild(std::size_t _child);
 
-		void doLoad();
+		void load();
 
-		void doExport() const;
+		void exportCode() const;
 
 		void setActiveVert(std::size_t _vert);
 
 		void setActiveVert(const IVec3& _vert);
 
-		std::optional<std::size_t> activeChild() const;
+		std::optional<std::size_t> activeChildIndex() const;
+
+		const ChildControl& activeChild() const;
+
+		std::optional<std::size_t> activeVertIndex() const;
 
 		void setActiveChild(std::optional<std::size_t> _child);
 

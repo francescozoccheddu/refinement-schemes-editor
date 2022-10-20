@@ -30,11 +30,12 @@ namespace RSE
 		void onChildAdd();
 		void onChildrenClear();
 		void onChildRemove(std::size_t _child);
+		void onActiveVertChange();
 		void onSetVert();
-		void onSetActiveChild(bool _advance);
-		void onSetActiveVert(bool _advance);
+		void onAdvanceActiveChild(bool _advance);
+		void onSetActiveVert(std::size_t _vert);
+		void onAdvanceActiveVert(bool _advance);
 		void onMouseMove();
-		void updateMouseMarker();
 
 	public:
 

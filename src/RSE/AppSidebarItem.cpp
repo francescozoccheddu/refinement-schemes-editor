@@ -34,7 +34,7 @@ namespace RSE
 		return minSize;
 	}
 
-	void AppSidebarItem::doSave() const
+	void AppSidebarItem::save() const
 	{
 		const std::string filename{ cinolib::file_dialog_save() };
 		if (!filename.empty())
@@ -54,24 +54,28 @@ namespace RSE
 		}
 	}
 
-	void AppSidebarItem::doClear()
+	void AppSidebarItem::clear()
 	{
+		if (m_activeChild.has_value())
+		{
+			onActiveVertChange();
+			m_activeChild = std::nullopt;
+		}
 		for (ChildControl* child : m_children)
 		{
 			delete child;
 		}
 		m_children.clear();
-		m_activeChild = std::nullopt;
 		m_hasAnySolo = false;
 		onChildrenClear();
 	}
 
-	void AppSidebarItem::doLoad()
+	void AppSidebarItem::load()
 	{
 		const std::string filename{ cinolib::file_dialog_open() };
 		if (!filename.empty())
 		{
-			doClear();
+			clear();
 			std::ifstream file{};
 			file.open(filename);
 			cpputils::serialization::Deserializer s{ file };
@@ -97,7 +101,7 @@ namespace RSE
 		}
 	}
 
-	void AppSidebarItem::doExport() const
+	void AppSidebarItem::exportCode() const
 	{
 		const std::string filename{ cinolib::file_dialog_save() };
 		if (!filename.empty())
@@ -116,7 +120,7 @@ namespace RSE
 	}
 
 
-	void AppSidebarItem::doAddChild()
+	void AppSidebarItem::addChild()
 	{
 		m_children.push_back(new ChildControl{ m_sourceSize });
 		m_children.back()->setExpanded(false);
@@ -124,18 +128,19 @@ namespace RSE
 		doUpdateColors();
 	}
 
-	void AppSidebarItem::doRemoveChild(std::size_t _child)
+	void AppSidebarItem::removeChild(std::size_t _child)
 	{
 		if (_child >= m_children.size())
 		{
 			throw std::logic_error{ "index out of bounds" };
 		}
-		onChildRemove(_child);
-		m_children.erase(m_children.begin() + _child);
-		if (m_activeChild = _child)
+		if (m_activeChild == _child)
 		{
 			m_activeChild = std::nullopt;
+			onActiveVertChange();
 		}
+		onChildRemove(_child);
+		m_children.erase(m_children.begin() + _child);
 		if (m_activeChild.has_value() && m_activeChild.value() > _child)
 		{
 			m_activeChild = m_activeChild.value() - 1;
@@ -151,6 +156,7 @@ namespace RSE
 			throw std::logic_error{ "no active child" };
 		}
 		m_children[m_activeChild.value()]->setActiveVert(_vert);
+		onActiveVertChange();
 	}
 
 	void AppSidebarItem::setActiveVert(const IVec3& _vert)
@@ -162,11 +168,22 @@ namespace RSE
 		m_children[m_activeChild.value()]->setActiveVert(_vert);
 		m_sourceSize = std::max(m_sourceSize, m_children[m_activeChild.value()]->maxSize());
 		onChildUpdate(m_activeChild.value());
+		onActiveVertChange();
 	}
 
-	std::optional<std::size_t>AppSidebarItem::activeChild() const
+	std::optional<std::size_t> AppSidebarItem::activeChildIndex() const
 	{
 		return m_activeChild;
+	}
+
+	const ChildControl& AppSidebarItem::activeChild() const
+	{
+		return *m_children[m_activeChild.value()];
+	}
+
+	std::optional<std::size_t> AppSidebarItem::activeVertIndex() const
+	{
+		return m_activeChild.has_value() ? std::optional{ activeChild().hexControl().activeVert() } : std::nullopt;
 	}
 
 	void AppSidebarItem::setActiveChild(std::optional<std::size_t> _child)
@@ -190,6 +207,7 @@ namespace RSE
 				m_children[_child.value()]->setExpanded(true);
 				onChildUpdate(_child.value());
 			}
+			onActiveVertChange();
 		}
 	}
 
@@ -274,6 +292,8 @@ namespace RSE
 			// children
 			std::optional<HexVertsU> copiedVerts{ IHexControl::pasteVerts() };
 			std::optional<IVec3> copiedVert{ IHexControl::pasteVert() };
+			const std::optional<std::size_t> oldActiveVert{ activeVertIndex() }, oldActiveChild{ activeChildIndex() };
+			const IVec3 oldActiveVertValue{ m_activeChild.has_value() ? activeChild().hexControl().verts()[activeVertIndex().value()] : IVec3{0,0,0} };
 			for (std::size_t i{}; i < m_children.size(); i++)
 			{
 				ChildControl& child{ *m_children[i] };
@@ -307,25 +327,33 @@ namespace RSE
 				{
 					case ChildControl::EResult::Updated:
 						onChildUpdate(i);
+						if (wasActive && child.expanded() && child.hexControl().verts()[activeVertIndex().value()] != oldActiveVertValue)
+						{
+							onActiveVertChange();
+						}
 						m_sourceSize = std::max(m_sourceSize, child.maxSize());
 						break;
 					case ChildControl::EResult::Removed:
-						doRemoveChild(i);
+						removeChild(i);
 						--i;
 						break;
 				}
 				ImGui::Spacing();
 				ImGui::PopID();
 			}
+			if (activeVertIndex() != oldActiveVert || activeChildIndex() != oldActiveChild)
+			{
+				onActiveVertChange();
+			}
 			// action bar
 			if (ImGui::Button("Clear"))
 			{
-				doClear();
+				clear();
 			}
 			ImGui::SameLine();
 			if (ImGui::Button("Add"))
 			{
-				doAddChild();
+				addChild();
 			}
 			ImGui::SameLine();
 			if (ImGui::Checkbox("Single mode", &m_singleMode))
@@ -361,17 +389,17 @@ namespace RSE
 		ImGui::Spacing();
 		if (ImGui::Button("Save"))
 		{
-			doSave();
+			save();
 		}
 		ImGui::SameLine();
 		if (ImGui::Button("Load"))
 		{
-			doLoad();
+			load();
 		}
 		ImGui::SameLine();
 		if (ImGui::Button("Export"))
 		{
-			doExport();
+			exportCode();
 		}
 		ImGui::Spacing();
 	}
