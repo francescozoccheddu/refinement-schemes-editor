@@ -11,6 +11,7 @@
 #include <fstream>
 #include <string>
 #include <RSE/Style.hpp>
+#include <RSE/Refinement.hpp>
 #include <iterator>
 
 namespace RSE
@@ -97,7 +98,22 @@ namespace RSE
 	}
 
 	void AppSidebarItem::doExport() const
-	{}
+	{
+		const std::string filename{ cinolib::file_dialog_save() };
+		if (!filename.empty())
+		{
+			std::ofstream file{};
+			file.open(filename);
+			std::vector<HexVertsU> verts{};
+			verts.reserve(m_children.size());
+			for (const ChildControl* child : m_children)
+			{
+				verts.push_back(child->hexControl().verts());
+			}
+			file << Refinement::build(verts, m_sourceSize).cppCode();
+			file.close();
+		}
+	}
 
 	const RHexControl& AppSidebarItem::sourceControl() const
 	{

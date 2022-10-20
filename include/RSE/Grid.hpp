@@ -18,7 +18,7 @@ namespace RSE
 		using FastVec2 = Vec2<FastValue>;
 		using FastVert = Vec3<FastValue>;
 		using FastHex = HexVertData<FastVert>;
-		using FastFace = FaceVertData<FastVert>;
+		using FastQuad = QuadVertData<FastVert>;
 		using FastEdge = EdgeVertData<FastVert>;
 
 		static constexpr bool c_isReal{ std::is_same_v<Real, FastValue> };
@@ -32,7 +32,7 @@ namespace RSE
 
 		static FastVert lerp1(const FastEdge& _src, FastValue _alpha);
 
-		static FastVert lerp2(const FastFace& _src, const FastVec2& _alpha);
+		static FastVert lerp2(const FastQuad& _src, const FastVec2& _alpha);
 
 		static FastVert lerp3(const FastHex& _src, const FastVert& _alpha);
 

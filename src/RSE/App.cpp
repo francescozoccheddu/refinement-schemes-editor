@@ -118,16 +118,13 @@ namespace RSE
 	{
 
 		// TODO:
+		// - export (on vertex use 1 source, on edge 2 sources, on face 4 sources, otherwise 8 sources)
 		// - screen point to ray
 		// - draw ray to test
 		// - closest point on grid on E
 		// - draw point to test
 		// - set active vertex on E and go to the next
-		// - draw visible children point clouds
-		// - draw visible & expanded children point indices
-		// - draw children hexes as they are given
-		// - export (on edge use 2 sources, on face 4 sources, otherwise 8 sources)
-		// - auto compose children (with a button?)
+		// - implement hexUtils::sortVerts
 	}
 
 	App::App() : m_canvas{}, m_axesWidget{ m_canvas.camera }, m_appWidget{}, m_grid{}
@@ -136,9 +133,9 @@ namespace RSE
 		m_canvas.background = cinolib::Color::hsv2rgb(0.0f, 0.0f, 0.1f);
 		m_canvas.push(&m_axesWidget);
 		m_canvas.push(&m_appWidget);
-		m_canvas.show_sidebar(true);
 		m_canvas.push(&m_gridMesh);
 		m_canvas.depth_cull_markers = false;
+		m_canvas.show_sidebar(true);
 		m_appWidget.show_open = true;
 		m_appWidget.onSourceUpdate += [this]() { onGridUpdate(); };
 		m_appWidget.onChildAdd += [this]() { onChildAdd(); };

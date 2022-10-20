@@ -13,61 +13,46 @@ namespace RSE
 
 	public:
 
-		class Child final
+		class Influence final
 		{
-
-		public:
-
-			class Influence final
-			{
-
-			private:
-
-				std::size_t m_index;
-				Real m_weight;
-
-			public:
-
-				Influence(std::size_t _index, Real _weight);
-
-				std::size_t index() const;
-
-				Real weight() const;
-
-			};
-
-			using Verts = HexVertData<std::vector<Influence>>;
 
 		private:
 
-			Verts m_verts;
+			std::size_t m_index;
+			Real m_weight;
 
 		public:
 
-			static std::vector<Influence> influences(const IVec3& _coord, Int _size);
+			Influence(std::size_t _index, Real _weight);
 
-			static Child fromVertsU(const HexVertsU& _verts, Int _size);
+			std::size_t index() const;
 
-			Child(const Verts& _verts);
-
-			Child(Verts&& _verts);
-
-			const Verts& verts() const;
+			Real weight() const;
 
 		};
 
+		using Vert = std::vector<Influence>;
+		using Verts = std::vector<Vert>;
+		using HexInds = HexVertData<std::size_t>;
+		using Inds = std::vector<HexInds>;
+
 	private:
 
-		std::vector<Child> m_children;
+		Verts m_verts;
+		Inds m_inds;
+
+		Refinement(Verts&& _verts, Inds&& _inds);
+
+		static Vert vert(const IVec3& _coord, Int _size);
 
 	public:
 
-		Refinement(const std::vector<Child>& _children);
+		static Refinement build(const std::vector<HexVertsU>& _childs, Int _size);
 
-		Refinement(std::vector<Child>&& _children);
+		const Verts& vertices() const;
 
-		const std::vector<Child>& children() const;
-		
+		const Inds& indices() const;
+
 		std::string cppCode() const;
 
 	};

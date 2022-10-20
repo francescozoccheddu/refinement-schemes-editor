@@ -8,7 +8,7 @@ namespace RSE
 		return _src[0] * (1.0f - _alpha) + _src[1] * _alpha;
 	}
 
-	typename Grid::FastVert Grid::lerp2(const FastFace& _src, const FastVec2& _alpha)
+	typename Grid::FastVert Grid::lerp2(const FastQuad& _src, const FastVec2& _alpha)
 	{
 		const FastVert y1 = lerp1({ _src[0], _src[1] }, _alpha.x());
 		const FastVert y2 = lerp1({ _src[2], _src[3] }, _alpha.x());
@@ -17,8 +17,8 @@ namespace RSE
 
 	typename Grid::FastVert Grid::lerp3(const FastHex& _src, const FastVert& _alpha)
 	{
-		const FastVert z1 = lerp2(FastFace{ _src[0], _src[1], _src[2], _src[3] }, FastVec2{ _alpha.x(), _alpha.y() });
-		const FastVert z2 = lerp2(FastFace{ _src[4], _src[5], _src[6], _src[7] }, FastVec2{ _alpha.x(), _alpha.y() });
+		const FastVert z1 = lerp2(FastQuad{ _src[0], _src[1], _src[2], _src[3] }, FastVec2{ _alpha.x(), _alpha.y() });
+		const FastVert z2 = lerp2(FastQuad{ _src[4], _src[5], _src[6], _src[7] }, FastVec2{ _alpha.x(), _alpha.y() });
 		return lerp1({ z1, z2 }, _alpha.z());
 	}
 

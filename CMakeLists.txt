@@ -19,6 +19,7 @@ add_executable (main
     "src/main.cpp"
     "src/RSE/App.cpp"
     "src/RSE/Grid.cpp"
+    "src/RSE/Refinement.cpp"
     "src/RSE/AxesGuiItem.cpp"
     "src/RSE/AppSidebarItem.cpp"
     "src/RSE/ChildControl.cpp"

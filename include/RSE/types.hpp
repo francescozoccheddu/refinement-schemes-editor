@@ -26,16 +26,16 @@ namespace RSE
 	using HexVertData = std::array<TData, 8>;
 
 	template<typename TData>
-	using FaceVertData = std::array<TData, 4>;
+	using QuadVertData = std::array<TData, 4>;
 
 	template<typename TData>
 	using EdgeVertData = std::array<TData, 2>;
 
 	using HexVerts = HexVertData<RVec3>;
 	using HexVertsU = HexVertData<IVec3>;
-	using FaceVerts = FaceVertData<RVec3>;
-	using FaceVertsU = FaceVertData<IVec3>;
-	using EdgeVerts = FaceVertData<RVec3>;
-	using EdgeVertsU = FaceVertData<IVec3>;
+	using QuadVerts = QuadVertData<RVec3>;
+	using QuadVertsU = QuadVertData<IVec3>;
+	using EdgeVerts = QuadVertData<RVec3>;
+	using EdgeVertsU = QuadVertData<IVec3>;
 
 }
