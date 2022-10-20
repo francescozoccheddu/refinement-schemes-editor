@@ -76,6 +76,7 @@ namespace RSE
 		mesh.show_mesh_flat();
 		mesh.show_in_wireframe(false);
 		mesh.show_out_wireframe(false);
+		mesh.draw_back_faces = false;
 		for (const RVec3 vert : hexUtils::cubeVerts<Real>())
 		{
 			mesh.vert_add(vert);
