@@ -62,9 +62,15 @@ namespace RSE
 		update();
 	}
 
-	void ChildControl::setActiveVert(std::optional<std::size_t> _index)
+	void ChildControl::setActiveVert(std::size_t _index)
 	{
 		m_hexControl.setActiveVert(_index);
+	}
+
+	void ChildControl::setActiveVert(const IVec3& _vert)
+	{
+		m_hexControl.setActiveVert(_vert);
+		update();
 	}
 
 
@@ -88,7 +94,12 @@ namespace RSE
 		return m_maxSize;
 	}
 
-	ChildControl::EResult ChildControl::draw(Int _size, bool _anySolo, const std::optional<HexVertsU>& _copiedVerts, const std::optional<IVec3>& _copiedVert)
+	ChildControl::EResult ChildControl::draw(Int _size, EVisibilityMode _visibilityMode)
+	{
+		return draw(_size, IHexControl::pasteVerts(), IHexControl::pasteVert(), _visibilityMode);
+	}
+
+	ChildControl::EResult ChildControl::draw(Int _size, const std::optional<HexVertsU>& _copiedVerts, const std::optional<IVec3>& _copiedVert, EVisibilityMode _visibilityMode)
 	{
 		m_style.pushImGui();
 		if (_size < m_maxSize)
@@ -97,10 +108,11 @@ namespace RSE
 		}
 		bool updated{ false };
 		// visibility
+		if (_visibilityMode != EVisibilityMode::Hidden)
 		{
 			const ImGuiStyle& style{ ImGui::GetStyle() };
 			ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ style.ItemSpacing.x / 2, style.ItemSpacing.y });
-			ImGui::PushStyleVar(ImGuiStyleVar_Alpha, style.Alpha * (_anySolo && !m_solo) ? 0.5f : 1.0f);
+			ImGui::PushStyleVar(ImGuiStyleVar_Alpha, style.Alpha * (_visibilityMode == EVisibilityMode::SomeSolo && !m_solo) ? 0.5f : 1.0f);
 			ImGui::Checkbox("##visible", &m_visible);
 			m_solo &= m_visible;
 			ImGui::PopStyleVar();
@@ -108,15 +120,16 @@ namespace RSE
 			ImGui::Checkbox("##solo", &m_solo);
 			m_visible |= m_solo;
 			ImGui::PopStyleVar();
+			ImGui::SameLine();
 		}
 		// header
-		ImGui::SameLine();
 		ImGui::SetNextItemOpen(m_expanded, ImGuiCond_Always);
 		if (!m_hexControl.valid())
 		{
 			ImGui::PushStyleColor(ImGuiCol_Text, ImVec4{ 1.0f,1.0f,0.0f,1.0f });
 		}
 		bool keep{ true };
+		const bool wasExpanded{ m_expanded };
 		m_expanded = ImGui::CollapsingHeader("Verts", &keep);
 		if (!m_hexControl.valid())
 		{
@@ -125,12 +138,12 @@ namespace RSE
 		// vertices
 		if (m_expanded)
 		{
+			if (!wasExpanded)
+			{
+				m_hexControl.setActiveVert(0);
+			}
 			ImGui::Spacing();
-			updated |= m_hexControl.draw(0, _size, _copiedVerts, _copiedVert);
-		}
-		else
-		{
-			m_hexControl.setActiveVert(std::nullopt);
+			updated |= m_hexControl.draw(true, 0, _size, _copiedVerts, _copiedVert);
 		}
 		Style::popImGui();
 		if (updated)

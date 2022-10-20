@@ -1,5 +1,8 @@
 #include <RSE/Grid.hpp>
 
+#include <utility>
+#include <cmath>
+
 namespace RSE
 {
 
@@ -97,6 +100,29 @@ namespace RSE
 		return genCast<FastValue>(_verts);
 	}
 
+	typename Grid::FastValue Grid::pointLineOffset(const FastVert& _origin, const FastVert& _dir, const FastVert& _point)
+	{
+		const FastVert ab = _dir;
+		const FastVert ap = _point - _origin;
+
+		if (ap.dot(ab) <= 0.0)
+			return -ap.norm();
+
+		const FastVert bp = _point - (_origin + _dir);
+
+		if (bp.dot(ab) >= 0.0)
+			return bp.norm();
+
+		return (ab.cross(ap)).norm() / ab.norm();
+	}
+
+	typename Grid::FastValue Grid::pointLineSqrDist(const FastVert& _origin, const FastVert& _normDir, const FastVert& _point, bool& _behind)
+	{
+		const FastValue offset{ pointLineOffset(_origin, _normDir, _point) };
+		_behind = offset < 0;
+		return _point.dist_sqrd(_origin + _normDir * offset);
+	}
+
 	Grid::Grid() : m_size{ 0 }, m_points{}
 	{}
 
@@ -151,6 +177,21 @@ namespace RSE
 		return static_cast<std::size_t>(_coords.z() * layers * layers + _coords.y() * layers + _coords.x());
 	}
 
+	IVec3 Grid::coord(std::size_t _index) const
+	{
+		assert(_index <= m_points.size());
+		Int index{ static_cast<Int>(_index) };
+		IVec3 coord;
+		const Int layers{ m_size + 1 };
+		coord.x() = index % layers;
+		index /= layers;
+		coord.y() = index % layers;
+		index /= layers;
+		coord.z() = index;
+		std::cout << coord << std::endl;
+		return coord;
+	}
+
 	HexVerts Grid::points(const HexVertsU& _coords) const
 	{
 		HexVerts verts;
@@ -161,14 +202,33 @@ namespace RSE
 		return verts;
 	}
 
-	RVec3 Grid::point(const IVec3& _coords) const
+	RVec3 Grid::point(std::size_t _index) const
 	{
-		return cast(m_points[index(_coords)]);
+		assert(_index <= m_points.size());
+		return cast(m_points[_index]);
 	}
 
-	IVec3 Grid::closestToRay(const RVec3& _origin, const RVec3 _dir) const
+	RVec3 Grid::point(const IVec3& _coords) const
 	{
-		return IVec3{ 0,0,0 };
+		return point(index(_coords));
+	}
+
+	std::size_t Grid::closestToRay(const RVec3& _origin, const RVec3 _dir) const
+	{
+		FastValue minDist{ std::numeric_limits<FastValue>::infinity() };
+		std::size_t minI{};
+		const FastVert& forigin{ cast(_origin) }, & fdir{ cast(_dir) };
+		for (std::size_t i{}; i < m_points.size(); i++)
+		{
+			bool behind;
+			const FastValue dist{ pointLineSqrDist(forigin, fdir, m_points[i], behind) };
+			if (dist < minDist)
+			{
+				minDist = dist;
+				minI = i;
+			}
+		}
+		return minI;
 	}
 
 }

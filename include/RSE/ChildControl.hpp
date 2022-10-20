@@ -29,6 +29,11 @@ namespace RSE
 			Updated, Removed, None 
 		};
 
+		enum class EVisibilityMode
+		{
+			SomeSolo, Default, Hidden
+		};
+
 		ChildControl(Int _size);
 
 		Style& style();
@@ -51,11 +56,15 @@ namespace RSE
 		
 		void setVisible(bool _visible);
 
-		void setActiveVert(std::optional<std::size_t> _index);
+		void setActiveVert(std::size_t _index);
+
+		void setActiveVert(const IVec3& _vert);
 
 		Int maxSize() const;
 
-		EResult draw(Int _size, bool _anySolo, const std::optional<HexVertsU>& _copiedVerts, const std::optional<IVec3>& _copiedVert);
+		EResult draw(Int _size, EVisibilityMode _visibilityMode = EVisibilityMode::Default);
+
+		EResult draw(Int _size, const std::optional<HexVertsU>& _copiedVerts, const std::optional<IVec3>& _copiedVert, EVisibilityMode _visibilityMode = EVisibilityMode::Default);
 
 	};
 

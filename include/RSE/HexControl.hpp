@@ -30,8 +30,7 @@ namespace RSE
 			HexVertData<unsigned char> m_ids;
 			Verts m_verts;
 			bool m_valid;
-			std::optional<std::size_t> m_activeVert;
-			bool m_vertSelection;
+			std::size_t m_activeVert;
 
 			void update();
 
@@ -57,13 +56,11 @@ namespace RSE
 
 			void setVerts(const Verts& _verts);
 
-			void setActiveVert(std::optional<std::size_t> _index);
+			void setActiveVert(std::size_t _index);
 
-			void setVertSelection(bool _enabled);
+			void setActiveVert(const Vert& _vert);
 
-			bool vertSelection() const;
-
-			std::optional<std::size_t> activeVert() const;
+			std::size_t activeVert() const;
 
 			const Verts& verts() const;
 
@@ -71,11 +68,11 @@ namespace RSE
 
 			bool valid() const;
 
-			bool draw(Value _min, Value _max, std::optional<Verts>& _copiedVerts, std::optional<Vert>& _copiedVert);
+			bool draw(bool _activeVertSel, Value _min, Value _max, std::optional<Verts>& _copiedVerts, std::optional<Vert>& _copiedVert);
 
-			bool draw(Value _min, Value _max, const std::optional<Verts>& _copiedVerts, const std::optional<Vert>& _copiedVert);
+			bool draw(bool _activeVertSel, Value _min, Value _max, const std::optional<Verts>& _copiedVerts, const std::optional<Vert>& _copiedVert);
 
-			bool draw(Value _min = Value{ 0 }, Value _max = std::numeric_limits<Value>::max());
+			bool draw(bool _activeVertSel = true, Value _min = Value{ 0 }, Value _max = std::numeric_limits<Value>::max());
 
 		};
 

@@ -26,7 +26,6 @@ namespace RSE
 		template<typename TData>
 		using CastResult = std::conditional_t<c_isReal, const TData&, TData>;
 
-
 		std::vector<FastVert> m_points;
 		Int m_size;
 
@@ -44,6 +43,10 @@ namespace RSE
 
 		static CastResult<FastHex> cast(const HexVerts& _verts);
 
+		static FastValue pointLineOffset(const FastVert& _origin, const FastVert& _dir, const FastVert& _point);
+
+		static FastValue pointLineSqrDist(const FastVert& _origin, const FastVert& _normDir, const FastVert& _point, bool& _behind);
+
 	public:
 
 		Grid();
@@ -58,11 +61,15 @@ namespace RSE
 
 		std::size_t index(const IVec3& _coords) const;
 
+		IVec3 coord(std::size_t _index) const;
+
 		HexVerts points(const HexVertsU& _coords) const;
+
+		RVec3 point(std::size_t _index) const;
 
 		RVec3 point(const IVec3& _coords) const;
 
-		IVec3 closestToRay(const RVec3& _origin, const RVec3 _dir) const;
+		std::size_t closestToRay(const RVec3& _origin, const RVec3 _dir) const;
 
 	};
 

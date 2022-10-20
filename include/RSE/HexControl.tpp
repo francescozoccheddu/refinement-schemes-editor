@@ -48,8 +48,7 @@ namespace RSE::internal
 		m_verts{ _verts },
 		m_ids{ 0,1,2,3,4,5,6,7 },
 		m_valid{},
-		m_vertSelection{ _vertSelection },
-		m_activeVert{ std::nullopt }
+		m_activeVert{}
 	{
 		update();
 	}
@@ -137,13 +136,9 @@ namespace RSE::internal
 	}
 
 	template<bool TInt>
-	void HexControl<TInt>::setActiveVert(std::optional<std::size_t> _index)
+	void HexControl<TInt>::setActiveVert(std::size_t _index)
 	{
-		if (!m_vertSelection)
-		{
-			throw std::logic_error{ "vert selection disabled" };
-		}
-		if (_index > m_verts.size())
+		if (_index >= m_verts.size())
 		{
 			throw std::domain_error{ "out of range" };
 		}
@@ -151,23 +146,14 @@ namespace RSE::internal
 	}
 
 	template<bool TInt>
-	void HexControl<TInt>::setVertSelection(bool _enabled)
+	void HexControl<TInt>::setActiveVert(const Vert& _vert)
 	{
-		m_vertSelection = _enabled;
-		if (!m_vertSelection)
-		{
-			m_activeVert = std::nullopt;
-		}
+		m_verts[m_activeVert] = _vert;
+		update();
 	}
 
 	template<bool TInt>
-	bool HexControl<TInt>::vertSelection() const
-	{
-		return m_vertSelection;
-	}
-
-	template<bool TInt>
-	std::optional<std::size_t> HexControl<TInt>::activeVert() const
+	std::size_t HexControl<TInt>::activeVert() const
 	{
 		return m_activeVert;
 	}
@@ -204,7 +190,7 @@ namespace RSE::internal
 	}
 
 	template<bool TInt>
-	bool HexControl<TInt>::draw(Value _min, Value _max, std::optional<Verts>& _copiedVerts, std::optional<Vert>& _copiedVert)
+	bool HexControl<TInt>::draw(bool _activeVertSel, Value _min, Value _max, std::optional<Verts>& _copiedVerts, std::optional<Vert>& _copiedVert)
 	{
 		if (_min > _max)
 		{
@@ -288,9 +274,9 @@ namespace RSE::internal
 			ImGui::SameLine();
 			ImGui::SetCursorPosY(cursor.y);
 			// selection
-			if (m_vertSelection)
+			if (_activeVertSel)
 			{
-				int activeI{ static_cast<int>(m_activeVert.value_or(m_verts.size())) };
+				int activeI{ static_cast<int>(m_activeVert) };
 				if (ImGui::RadioButton("", &activeI, static_cast<int>(i)))
 				{
 					m_activeVert = i;
@@ -345,11 +331,11 @@ namespace RSE::internal
 	}
 
 	template<bool TInt>
-	bool HexControl<TInt>::draw(Value _min, Value _max, const std::optional<Verts>& _copiedVerts, const std::optional<Vert>& _copiedVert)
+	bool HexControl<TInt>::draw(bool _activeVertSel, Value _min, Value _max, const std::optional<Verts>& _copiedVerts, const std::optional<Vert>& _copiedVert)
 	{
 		std::optional<Verts> tempVerts{ _copiedVerts };
 		std::optional<Vert> tempVert{ _copiedVert };
-		const bool updated{ draw(_min, _max, tempVerts, tempVert) };
+		const bool updated{ draw(_activeVertSel, _min, _max, tempVerts, tempVert) };
 		if (tempVert.has_value() && tempVert != _copiedVert)
 		{
 			copyVert(tempVert.value());
@@ -362,9 +348,9 @@ namespace RSE::internal
 	}
 
 	template<bool TInt>
-	bool HexControl<TInt>::draw(Value _min, Value _max)
+	bool HexControl<TInt>::draw(bool _activeVertSel, Value _min, Value _max)
 	{
-		return draw(_min, _max, pasteVerts(), pasteVert());
+		return draw(_activeVertSel, _min, _max, pasteVerts(), pasteVert());
 	}
 
 }

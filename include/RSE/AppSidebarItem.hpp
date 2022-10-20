@@ -26,15 +26,11 @@ namespace RSE
 		std::vector<ChildControl*> m_children;
 		RHexControl m_sourceControl;
 		Int m_sourceSize;
-		ChildControl* m_activeChild, * m_expandedChild;
-		bool m_expandSingle;
+		std::optional<std::size_t> m_activeChild;
 		bool m_hasAnySolo;
+		bool m_singleMode;
 
 		Int minRequiredSize() const;
-		void doClear();
-		void doSave() const;
-		void doLoad();
-		void doExport() const;
 		void doUpdateColors();
 
 	public:
@@ -47,7 +43,25 @@ namespace RSE
 		cpputils::collections::Event<AppSidebarItem, std::size_t> onChildRemove;
 		cpputils::collections::Event<AppSidebarItem, std::size_t> onChildUpdate;
 
-		void setActiveVert(std::size_t _child, std::optional<std::size_t> _vert);
+		void doClear();
+
+		void doSave() const;
+
+		void doAddChild();
+
+		void doRemoveChild(std::size_t _child);
+
+		void doLoad();
+
+		void doExport() const;
+
+		void setActiveVert(std::size_t _vert);
+
+		void setActiveVert(const IVec3& _vert);
+
+		std::optional<std::size_t> activeChild() const;
+
+		void setActiveChild(std::optional<std::size_t> _child);
 
 		const RHexControl& sourceControl() const;
 

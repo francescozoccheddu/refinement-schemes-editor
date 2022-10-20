@@ -32,6 +32,7 @@ namespace RSE
 			}
 		}
 		m_gridMesh.update_bbox();
+		m_mouseGridIndex = 0;
 		for (std::size_t i{}; i < m_appWidget.childControls().size(); i++)
 		{
 			onChildUpdate(i);
@@ -53,6 +54,9 @@ namespace RSE
 			}
 			mesh.poly_set_color(child.style().color(1.0f, 1.0f, 0.75f));
 			mesh.update_normals();
+			mesh.updateGL();
+			mesh.update_normals();
+			mesh.updateGL();
 		}
 		mesh.show_mesh(valid && visible);
 		const HexVertData<std::size_t> firstOccurrencies{ child.hexControl().firstOccurrenceIndices() };
@@ -87,7 +91,7 @@ namespace RSE
 		mesh.poly_add(vertsOrder);
 		mesh.edge_set_color(cinolib::Color::BLACK());
 		m_childMeshes.push_back(&mesh);
-		m_canvas.markers.resize(m_childMeshes.size() * 8);
+		m_canvas.markers.resize(m_childMeshes.size() * 8 + 1);
 		for (std::size_t i{}; i < 8; i++)
 		{
 			const std::size_t mi{ i + (m_childMeshes.size() - 1) * 8 };
@@ -97,17 +101,19 @@ namespace RSE
 		}
 		m_canvas.push(m_childMeshes.back(), false);
 		onChildUpdate(m_childMeshes.size() - 1);
+		updateMouseMarker();
 	}
 
 	void App::onChildrenClear()
 	{
-		m_canvas.pop_all_markers();
+		m_canvas.markers.resize(1);
 		for (cinolib::DrawableHexmesh<>* mesh : m_childMeshes)
 		{
 			m_canvas.pop(mesh);
 			delete mesh;
 		}
 		m_childMeshes.clear();
+		updateMouseMarker();
 	}
 
 	void App::onChildRemove(std::size_t _child)
@@ -115,29 +121,77 @@ namespace RSE
 		m_canvas.pop(m_childMeshes[_child]);
 		delete m_childMeshes[_child];
 		m_childMeshes.erase(m_childMeshes.begin() + _child);
+		updateMouseMarker();
 	}
 
 	void App::onSetVert()
 	{
-
-		// TODO:
-		// - screen point to ray
-		// - draw ray to test
-		// - closest point on grid on E
-		// - draw point to test
-		// - set active vertex on E and go to the next
-		// - implement hexUtils::sortVerts
+		if (m_appWidget.activeChild().has_value())
+		{
+			m_appWidget.setActiveVert(m_grid.coord(m_mouseGridIndex));
+		}
 	}
 
-	App::App() : m_canvas{}, m_axesWidget{ m_canvas.camera }, m_appWidget{}, m_grid{}
+	void App::onSetActiveChild(bool _advance)
+	{
+		if (!m_appWidget.activeChild().has_value())
+		{
+			m_appWidget.setActiveChild(0);
+		}
+		else
+		{
+			std::size_t index{ m_appWidget.activeChild().value() + 1 + (_advance ? 1 : -1) };
+			if (index == 0)
+			{
+				index = m_appWidget.childControls().size();
+			}
+			index--;
+			m_appWidget.setActiveChild(index % m_appWidget.childControls().size());
+		}
+	}
+
+	void App::onSetActiveVert(bool _advance)
+	{
+		if (!m_appWidget.activeChild().has_value())
+		{
+			m_appWidget.setActiveChild(0);
+		}
+		std::size_t index{ m_appWidget.childControls()[m_appWidget.activeChild().value()].hexControl().activeVert() + 1 + (_advance ? 1 : -1) };
+		if (index == 0)
+		{
+			index = 8;
+		}
+		index--;
+		m_appWidget.setActiveVert(index % 8);
+	}
+
+	void App::onMouseMove()
+	{
+		const cinolib::Ray r{ m_canvas.eye_to_mouse_ray() };
+		m_mouseGridIndex = m_grid.closestToRay(r.begin(), r.dir());
+		updateMouseMarker();
+	}
+
+	void App::updateMouseMarker()
+	{
+		m_canvas.markers.back() = cinolib::Marker{
+			.pos_3d{ m_grid.point(m_mouseGridIndex)},
+			.color{cinolib::Color::WHITE()},
+			.disk_radius{5u}
+		};
+	}
+
+	App::App() : m_canvas{}, m_axesWidget{ m_canvas.camera }, m_appWidget{}, m_grid{}, m_gridMesh{}, m_mouseGridIndex{}
 	{
 		onGridUpdate();
+		onChildrenClear();
 		m_canvas.background = cinolib::Color::hsv2rgb(0.0f, 0.0f, 0.1f);
 		m_canvas.push(&m_axesWidget);
 		m_canvas.push(&m_appWidget);
 		m_canvas.push(&m_gridMesh);
 		m_canvas.depth_cull_markers = false;
 		m_canvas.show_sidebar(true);
+		m_canvas.key_bindings.pan_with_arrow_keys = false;
 		m_appWidget.show_open = true;
 		m_appWidget.onSourceUpdate += [this]() { onGridUpdate(); };
 		m_appWidget.onChildAdd += [this]() { onChildAdd(); };
@@ -150,10 +204,38 @@ namespace RSE
 		m_canvas.callback_key_pressed = [this](int _key, int _modifiers) {
 			switch (_key)
 			{
+				case GLFW_KEY_A:
+					m_appWidget.doAddChild();
+					m_appWidget.setActiveChild(m_appWidget.childControls().size() - 1);
+					return true;
 				case GLFW_KEY_E:
+					if (m_appWidget.activeChild().has_value())
+					{
+						onSetVert();
+						onSetActiveVert(true);
+					}
+					return true;
+				case GLFW_KEY_W:
 					onSetVert();
 					return true;
+				case GLFW_KEY_UP:
+					onSetActiveChild(false);
+					return true;
+				case GLFW_KEY_DOWN:
+					onSetActiveChild(true);
+					return true;
+				case GLFW_KEY_LEFT:
+					onSetActiveVert(false);
+					return true;
+				case GLFW_KEY_RIGHT:
+					onSetActiveVert(true);
+					return true;
 			}
+			return false;
+		};
+		m_canvas.callback_mouse_moved = [this](double _x, double _y)
+		{
+			onMouseMove();
 			return false;
 		};
 	}

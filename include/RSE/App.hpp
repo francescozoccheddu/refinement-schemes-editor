@@ -23,6 +23,7 @@ namespace RSE
 		AppSidebarItem m_appWidget;
 		std::vector<cinolib::DrawableHexmesh<>*> m_childMeshes;
 		Grid m_grid;
+		std::size_t m_mouseGridIndex{};
 
 		void onGridUpdate();
 		void onChildUpdate(std::size_t _child);
@@ -30,6 +31,10 @@ namespace RSE
 		void onChildrenClear();
 		void onChildRemove(std::size_t _child);
 		void onSetVert();
+		void onSetActiveChild(bool _advance);
+		void onSetActiveVert(bool _advance);
+		void onMouseMove();
+		void updateMouseMarker();
 
 	public:
 

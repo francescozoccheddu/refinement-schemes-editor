@@ -17,7 +17,7 @@
 namespace RSE
 {
 
-	AppSidebarItem::AppSidebarItem() : cinolib::SideBarItem{ "App" }, m_children{}, m_sourceSize{ 3 }, m_sourceControl{ RHexControl::cubeVerts(-c_maxSourceExtent, c_maxSourceExtent) }, m_activeChild{}, m_expandedChild{}, m_expandSingle{ false }, onSourceUpdate{}, m_hasAnySolo{ false }
+	AppSidebarItem::AppSidebarItem() : cinolib::SideBarItem{ "App" }, m_children{}, m_sourceSize{ 3 }, m_sourceControl{ RHexControl::cubeVerts(-c_maxSourceExtent, c_maxSourceExtent) }, m_activeChild{}, onSourceUpdate{}, m_hasAnySolo{ false }, m_singleMode{ false }
 	{
 	}
 
@@ -61,7 +61,7 @@ namespace RSE
 			delete child;
 		}
 		m_children.clear();
-		m_expandedChild = m_activeChild = nullptr;
+		m_activeChild = std::nullopt;
 		m_hasAnySolo = false;
 		onChildrenClear();
 	}
@@ -115,6 +115,84 @@ namespace RSE
 		}
 	}
 
+
+	void AppSidebarItem::doAddChild()
+	{
+		m_children.push_back(new ChildControl{ m_sourceSize });
+		m_children.back()->setExpanded(false);
+		onChildAdd();
+		doUpdateColors();
+	}
+
+	void AppSidebarItem::doRemoveChild(std::size_t _child)
+	{
+		if (_child >= m_children.size())
+		{
+			throw std::logic_error{ "index out of bounds" };
+		}
+		onChildRemove(_child);
+		m_children.erase(m_children.begin() + _child);
+		if (m_activeChild = _child)
+		{
+			m_activeChild = std::nullopt;
+		}
+		if (m_activeChild.has_value() && m_activeChild.value() > _child)
+		{
+			m_activeChild = m_activeChild.value() - 1;
+		}
+		delete& m_children[_child];
+		doUpdateColors();
+	}
+
+	void AppSidebarItem::setActiveVert(std::size_t _vert)
+	{
+		if (!m_activeChild.has_value())
+		{
+			throw std::logic_error{ "no active child" };
+		}
+		m_children[m_activeChild.value()]->setActiveVert(_vert);
+	}
+
+	void AppSidebarItem::setActiveVert(const IVec3& _vert)
+	{
+		if (!m_activeChild.has_value())
+		{
+			throw std::logic_error{ "no active child" };
+		}
+		m_children[m_activeChild.value()]->setActiveVert(_vert);
+		m_sourceSize = std::max(m_sourceSize, m_children[m_activeChild.value()]->maxSize());
+		onChildUpdate(m_activeChild.value());
+	}
+
+	std::optional<std::size_t>AppSidebarItem::activeChild() const
+	{
+		return m_activeChild;
+	}
+
+	void AppSidebarItem::setActiveChild(std::optional<std::size_t> _child)
+	{
+		if (m_activeChild != _child)
+		{
+			const std::optional<std::size_t> old{ m_activeChild };
+			m_activeChild = _child;
+			if (old.has_value())
+			{
+				m_children[old.value()]->setExpanded(false);
+				onChildUpdate(old.value());
+			}
+			if (_child.has_value())
+			{
+				if (_child.value() >= m_children.size())
+				{
+					throw std::logic_error{ "index out of bounds" };
+				}
+				m_activeChild = _child;
+				m_children[_child.value()]->setExpanded(true);
+				onChildUpdate(_child.value());
+			}
+		}
+	}
+
 	const RHexControl& AppSidebarItem::sourceControl() const
 	{
 		return m_sourceControl;
@@ -141,23 +219,9 @@ namespace RSE
 
 	bool AppSidebarItem::visible(const ChildControl& _child) const
 	{
-		return _child.visible() && (!m_hasAnySolo || _child.solo());
-	}
-
-	void AppSidebarItem::setActiveVert(std::size_t _child, std::optional<std::size_t> _vert)
-	{
-		if (_vert.has_value())
-		{
-			if (m_activeChild != m_children[_child])
-			{
-				if (m_activeChild)
-				{
-					m_activeChild->setActiveVert(std::nullopt);
-				}
-				m_activeChild = m_children[_child];
-				m_children[_child]->setActiveVert(_vert);
-			}
-		}
+		return m_singleMode
+			? m_activeChild.has_value() && m_children[m_activeChild.value()] == &_child
+			: (_child.visible() && (!m_hasAnySolo || _child.solo()));
 	}
 
 	void AppSidebarItem::draw()
@@ -165,6 +229,7 @@ namespace RSE
 		ImGui::Unindent(ImGui::GetTreeNodeToLabelSpacing());
 		ImGui::Spacing();
 		// source
+		ImGui::SetNextItemOpen(false, ImGuiCond_Once);
 		if (ImGui::CollapsingHeader("Source"))
 		{
 			bool sourceUpdated{ false };
@@ -174,7 +239,7 @@ namespace RSE
 				sourceUpdated = true;
 			}
 			ImGui::Spacing();
-			if (m_sourceControl.draw(-c_maxSourceExtent, c_maxSourceExtent))
+			if (m_sourceControl.draw(false, -c_maxSourceExtent, c_maxSourceExtent))
 			{
 				sourceUpdated = true;
 			}
@@ -185,6 +250,7 @@ namespace RSE
 		}
 		// children
 		ImGui::Spacing();
+		ImGui::SetNextItemOpen(true, ImGuiCond_Once);
 		if (ImGui::CollapsingHeader("Children"))
 		{
 			// text
@@ -206,75 +272,47 @@ namespace RSE
 			}
 			ImGui::Spacing();
 			// children
-			bool shouldUpdateColors{ false };
 			std::optional<HexVertsU> copiedVerts{ IHexControl::pasteVerts() };
 			std::optional<IVec3> copiedVert{ IHexControl::pasteVert() };
 			for (std::size_t i{}; i < m_children.size(); i++)
 			{
 				ChildControl& child{ *m_children[i] };
 				ImGui::PushID(&child);
-				bool shouldUpdateChild{ false };
 				const bool wasVisible{ visible(child) };
-				const bool wasExpanded{ child.expanded() };
-				const ChildControl::EResult result{ child.draw(m_sourceSize, m_hasAnySolo, copiedVerts, copiedVert) };
-				shouldUpdateChild |= wasVisible != visible(child);
-				shouldUpdateChild |= wasExpanded != child.expanded();
-				if (&child != m_expandedChild)
+				const bool wasActive{ child.expanded() };
+				const ChildControl::EVisibilityMode mode{
+					m_singleMode
+					? ChildControl::EVisibilityMode::Hidden
+					: m_hasAnySolo
+						? ChildControl::EVisibilityMode::SomeSolo
+						: ChildControl::EVisibilityMode::Default
+				};
+				const ChildControl::EResult result{ child.draw(m_sourceSize, copiedVerts, copiedVert, mode) };
+				if (wasVisible != visible(child))
 				{
-					if (child.expanded())
+					onChildUpdate(i);
+				}
+				if (wasActive != child.expanded())
+				{
+					if (wasActive)
 					{
-						if (m_expandedChild && m_expandSingle)
-						{
-							m_expandedChild->setExpanded(false);
-							if (!shouldUpdateColors)
-							{
-								onChildUpdate(std::distance(m_children.begin(), std::find(m_children.begin(), m_children.end(), m_expandedChild)));
-							}
-						}
-						m_expandedChild = &child;
+						setActiveChild(std::nullopt);
 					}
-				}
-				else if (!child.expanded())
-				{
-					m_expandedChild = nullptr;
-				}
-				if (child.hexControl().activeVert().has_value())
-				{
-					if (m_activeChild != &child)
+					else
 					{
-						if (m_activeChild)
-						{
-							m_activeChild->setActiveVert(std::nullopt);
-						}
-						m_activeChild = &child;
+						setActiveChild(i);
 					}
-				}
-				else if (m_activeChild == &child)
-				{
-					m_activeChild = nullptr;
 				}
 				switch (result)
 				{
 					case ChildControl::EResult::Updated:
-						shouldUpdateChild = true;
+						onChildUpdate(i);
 						m_sourceSize = std::max(m_sourceSize, child.maxSize());
 						break;
 					case ChildControl::EResult::Removed:
-						shouldUpdateChild = false;
-						onChildRemove(i);
-						m_children.erase(m_children.begin() + i);
-						if (&child == m_activeChild)
-						{
-							m_activeChild = nullptr;
-						}
-						shouldUpdateColors = true;
-						delete& child;
+						doRemoveChild(i);
 						--i;
 						break;
-				}
-				if (shouldUpdateChild && !shouldUpdateColors)
-				{
-					onChildUpdate(i);
 				}
 				ImGui::Spacing();
 				ImGui::PopID();
@@ -287,23 +325,17 @@ namespace RSE
 			ImGui::SameLine();
 			if (ImGui::Button("Add"))
 			{
-				m_children.push_back(new ChildControl{ m_sourceSize });
-				shouldUpdateColors = true;
-				onChildAdd();
+				doAddChild();
 			}
 			ImGui::SameLine();
-			if (ImGui::Checkbox("Single mode", &m_expandSingle) && m_expandSingle)
+			if (ImGui::Checkbox("Single mode", &m_singleMode))
 			{
 				for (std::size_t i{}; i < m_children.size(); i++)
 				{
-					const bool wasExpanded{ m_children[i]->expanded() };
-					m_children[i]->setExpanded(false);
-					if (!shouldUpdateColors && wasExpanded)
-					{
-						onChildUpdate(i);
-					}
+					m_children[i]->setVisible(true);
+					m_children[i]->setSolo(false);
+					onChildUpdate(i);
 				}
-				m_expandedChild = nullptr;
 			}
 			const bool hadAnySolo{ m_hasAnySolo };
 			m_hasAnySolo = false;
@@ -315,11 +347,7 @@ namespace RSE
 					break;
 				}
 			}
-			if (shouldUpdateColors)
-			{
-				doUpdateColors();
-			}
-			else if (m_hasAnySolo != hadAnySolo)
+			if (m_hasAnySolo != hadAnySolo)
 			{
 				for (std::size_t i{}; i < m_children.size(); i++)
 				{
