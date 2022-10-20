@@ -40,6 +40,43 @@ namespace RSE
 		}
 	}
 
+	template<typename TOut, typename TIn, std::size_t TSize>
+	typename std::conditional_t<std::is_same_v<TIn, TOut>, const std::array<Vec3<TOut>, TSize>&, std::array<Vec3<TOut>, TSize>> genCast(const std::array<Vec3<TIn>, TSize>& _vecs)
+	{
+		if constexpr (std::is_same_v<TIn, TOut>)
+		{
+			return _vecs;
+		}
+		else
+		{
+			std::array<Vec3<TOut>, TSize> out;
+			for (std::size_t i{}; i < _vecs.size(); i++)
+			{
+				out[i] = genCast<TOut>(_vecs[i]);
+			}
+			return out;
+		}
+	}
+
+	template<typename TOut, typename TIn>
+	typename std::conditional_t<std::is_same_v<TIn, TOut>, const std::vector<Vec3<TOut>>&, std::vector<Vec3<TOut>>> genCast(const std::vector<Vec3<TIn>>& _vecs)
+	{
+		if constexpr (std::is_same_v<TIn, TOut>)
+		{
+			return _vecs;
+		}
+		else
+		{
+			std::vector<Vec3<TOut>> out;
+			out.resize(_vecs.size());
+			for (std::size_t i{}; i < _vecs.size(); i++)
+			{
+				out[i] = genCast<TOut>(_vecs[i]);
+			}
+			return out;
+		}
+	}
+
 	typename Grid::CastResult<Grid::FastVert> Grid::cast(const RVec3& _vec)
 	{
 		return genCast<FastValue>(_vec);
@@ -57,19 +94,7 @@ namespace RSE
 
 	typename Grid::CastResult<Grid::FastHex> Grid::cast(const HexVerts& _verts)
 	{
-		if constexpr (c_isReal)
-		{
-			return _verts;
-		}
-		else
-		{
-			FastHex out;
-			for (std::size_t i{}; i < _verts.size(); i++)
-			{
-				out[i] = cast(_verts[i]);
-			}
-			return out;
-		}
+		return genCast<FastValue>(_verts);
 	}
 
 	Grid::Grid() : m_size{ 0 }, m_points{}
@@ -114,20 +139,7 @@ namespace RSE
 
 	typename Grid::CastResult<std::vector<RVec3>> Grid::realPoints() const
 	{
-		if constexpr (c_isReal)
-		{
-			return m_points;
-		}
-		else
-		{
-			std::vector<RVec3> out{};
-			out.resize(m_points.size());
-			for (std::size_t i{}; i < out.size(); i++)
-			{
-				out[i] = cast(m_points[i]);
-			}
-			return out;
-		}
+		return genCast<Real>(m_points);
 	}
 
 	std::size_t Grid::index(const IVec3& _coords) const

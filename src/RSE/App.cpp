@@ -1,7 +1,6 @@
 #include <RSE/App.hpp>
 
 #include <cinolib/color.h>
-#include <glfw/glfw3.h>
 #include <type_traits>
 #include <string>
 #include <RSE/hexUtils.hpp>
@@ -145,9 +144,9 @@ namespace RSE
 		m_canvas.callback_key_pressed = [this](int _key, int _modifiers) {
 			switch (_key)
 			{
-				case GLFW_KEY_E:
-					onSetVert();
-					return true;
+			case GLFW_KEY_E:
+				onSetVert();
+				return true;
 			}
 			return false;
 		};

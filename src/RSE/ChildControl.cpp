@@ -5,7 +5,6 @@
 #include <sstream>
 #include <string_view>
 #include <algorithm>
-#include <glfw/glfw3.h>
 
 namespace RSE
 {

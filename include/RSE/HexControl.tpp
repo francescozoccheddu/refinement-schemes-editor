@@ -8,7 +8,7 @@
 #include <cpputils/serialization/StringSerializer.hpp>
 #include <cpputils/serialization/StringDeserializer.hpp>
 #include <imgui.h>
-#include <glfw/glfw3.h>
+#include <cinolib/gl/gl_glfw.h>
 #include <stdexcept>
 
 namespace RSE::internal
@@ -113,7 +113,7 @@ namespace RSE::internal
 	}
 
 	template<bool TInt>
-	std::optional<typename HexControl<TInt>> HexControl<TInt>::paste()
+	std::optional<HexControl<TInt>> HexControl<TInt>::paste()
 	{
 		std::optional<Verts> verts{ pasteVerts() };
 		if (verts.has_value())
@@ -258,7 +258,7 @@ namespace RSE::internal
 			if (dragging)
 			{
 				const float dragDeltaItems{ (ImGui::GetMousePos().y - cursor.y) / lineSize.y };
-				const int targetI = std::clamp(static_cast<int>(i + std::floorf(dragDeltaItems)), 0, static_cast<int>(m_verts.size() - 1));
+				const int targetI = std::clamp(static_cast<int>(i + std::floor(dragDeltaItems)), 0, static_cast<int>(m_verts.size() - 1));
 				std::swap(m_ids[i], m_ids[targetI]);
 				std::swap(m_verts[i], m_verts[targetI]);
 				if (i != targetI)
@@ -300,7 +300,8 @@ namespace RSE::internal
 			// value
 			Vert& vert{ m_verts[i] };
 			{
-				std::conditional_t<TInt, int, float> xyz[3]{ static_cast<Value>(vert.x()), static_cast<Value>(vert.y()), static_cast<Value>(vert.z()) };
+				using ImGuiValue = std::conditional_t<TInt, int, float>;
+				ImGuiValue xyz[3]{ static_cast<ImGuiValue>(vert.x()), static_cast<ImGuiValue>(vert.y()), static_cast<ImGuiValue>(vert.z()) };
 				const float speed{ static_cast<float>(_max - _min) / 100.0f };
 				bool vertUpdated;
 				if constexpr (TInt)
