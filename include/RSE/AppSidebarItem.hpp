@@ -31,7 +31,6 @@ namespace RSE
 		bool m_hasAnySolo;
 
 		Int minRequiredSize() const;
-		void drawControls();
 		void doClear();
 		void doSave() const;
 		void doLoad();
@@ -47,6 +46,8 @@ namespace RSE
 		cpputils::collections::Event<AppSidebarItem> onChildAdd;
 		cpputils::collections::Event<AppSidebarItem, std::size_t> onChildRemove;
 		cpputils::collections::Event<AppSidebarItem, std::size_t> onChildUpdate;
+
+		void setActiveVert(std::size_t _child, std::optional<std::size_t> _vert);
 
 		const RHexControl& sourceControl() const;
 

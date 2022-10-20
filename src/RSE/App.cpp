@@ -25,7 +25,7 @@ namespace RSE
 					coord[(d + 1) % 3] = y;
 					for (Int z{}; z < 2; z++)
 					{
-						coord[d] = z ? layers - 1 : 0;
+						coord[static_cast<unsigned int>(d)] = z ? layers - 1 : 0;
 						m_gridMesh[i++] = m_grid.point(coord);
 					}
 				}
@@ -49,7 +49,7 @@ namespace RSE
 		{
 			for (std::size_t i{}; i < 8; i++)
 			{
-				mesh.vert(i) = verts[i];
+				mesh.vert(static_cast<unsigned int>(i)) = verts[i];
 			}
 			mesh.poly_set_color(child.style().color(1.0f, 1.0f, 0.75f));
 			mesh.update_normals();
@@ -78,7 +78,13 @@ namespace RSE
 		{
 			mesh.vert_add(vert);
 		}
-		mesh.poly_add(std::vector<unsigned int>(hexUtils::cinolibVertsOrder.begin(), hexUtils::cinolibVertsOrder.end()));
+		std::vector<unsigned int> vertsOrder{};
+		vertsOrder.resize(8);
+		for (std::size_t i{}; i < 8; i++)
+		{
+			vertsOrder[i] = static_cast<unsigned int>(hexUtils::cinolibVertsOrder[i]);
+		}
+		mesh.poly_add(vertsOrder);
 		mesh.edge_set_color(cinolib::Color::BLACK());
 		m_childMeshes.push_back(&mesh);
 		m_canvas.markers.resize(m_childMeshes.size() * 8);
@@ -144,9 +150,9 @@ namespace RSE
 		m_canvas.callback_key_pressed = [this](int _key, int _modifiers) {
 			switch (_key)
 			{
-			case GLFW_KEY_E:
-				onSetVert();
-				return true;
+				case GLFW_KEY_E:
+					onSetVert();
+					return true;
 			}
 			return false;
 		};

@@ -291,7 +291,7 @@ namespace RSE::internal
 			if (m_vertSelection)
 			{
 				int activeI{ static_cast<int>(m_activeVert.value_or(m_verts.size())) };
-				if (ImGui::RadioButton("", &activeI, i))
+				if (ImGui::RadioButton("", &activeI, static_cast<int>(i)))
 				{
 					m_activeVert = i;
 				}

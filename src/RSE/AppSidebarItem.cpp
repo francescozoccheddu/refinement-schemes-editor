@@ -144,6 +144,22 @@ namespace RSE
 		return _child.visible() && (!m_hasAnySolo || _child.solo());
 	}
 
+	void AppSidebarItem::setActiveVert(std::size_t _child, std::optional<std::size_t> _vert)
+	{
+		if (_vert.has_value())
+		{
+			if (m_activeChild != m_children[_child])
+			{
+				if (m_activeChild)
+				{
+					m_activeChild->setActiveVert(std::nullopt);
+				}
+				m_activeChild = m_children[_child];
+				m_children[_child]->setActiveVert(_vert);
+			}
+		}
+	}
+
 	void AppSidebarItem::draw()
 	{
 		ImGui::Unindent(ImGui::GetTreeNodeToLabelSpacing());
