@@ -12,7 +12,6 @@ namespace RSE
 	private:
 
 		float m_h, m_s, m_v;
-		cinolib::Color m_color;
 
 		ImVec4 col(float _saturation, float _value, float _alpha = 1.0f) const;
 
@@ -28,7 +27,7 @@ namespace RSE
 		float saturation() const;
 		float value() const;
 
-		const cinolib::Color& color() const;
+		cinolib::Color color(float _saturation = 1.0f, float _value = 1.0f, float _alpha = 1.0f) const;
 
 	};
 

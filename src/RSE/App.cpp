@@ -52,9 +52,7 @@ namespace RSE
 			{
 				mesh.vert(i) = verts[i];
 			}
-			cinolib::Color color{ child.style().color() };
-			color.a = 0.75f;
-			mesh.poly_set_color(color);
+			mesh.poly_set_color(child.style().color(1.0f, 1.0f, 0.75f));
 			mesh.update_normals();
 		}
 		mesh.show_mesh(valid && visible);
@@ -64,7 +62,7 @@ namespace RSE
 			cinolib::Marker& marker{ m_canvas.markers[i + _child * 8] };
 			const bool duplicate{ firstOccurrencies[i] != i };
 			marker.pos_3d = verts[i];
-			marker.color = child.style().color();
+			marker.color = child.style().color(0.5f);
 			marker.disk_radius = !valid && visible ? (duplicate ? 8 : 5) : 0;
 			marker.font_size = child.expanded() && visible && !duplicate ? (duplicate ? 24 : 20) : 0;
 		}
@@ -118,7 +116,6 @@ namespace RSE
 	{
 
 		// TODO:
-		// - export (on vertex use 1 source, on edge 2 sources, on face 4 sources, otherwise 8 sources)
 		// - screen point to ray
 		// - draw ray to test
 		// - closest point on grid on E

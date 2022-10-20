@@ -9,9 +9,7 @@ namespace RSE
 
 	ImVec4 Style::col(float _saturation, float _value, float _alpha) const
 	{
-		assert(_saturation >= 0.0f && _saturation <= 1.0f);
-		assert(_value >= 0.0f && _value <= 1.0f);
-		const cinolib::Color hsv{ cinolib::Color::hsv2rgb(m_h / 360.0f, m_s * _saturation, m_v * _value, _alpha) };
+		const cinolib::Color hsv{ color(_saturation, _value, _alpha)};
 		return ImVec4{ hsv.r, hsv.g, hsv.b, hsv.a };
 	}
 
@@ -32,7 +30,6 @@ namespace RSE
 		}
 		m_s = _saturation;
 		m_v = _value;
-		m_color = cinolib::Color::hsv2rgb(m_h / 360.0f, m_s, m_v);
 	}
 
 	void Style::pushImGui() const
@@ -112,9 +109,12 @@ namespace RSE
 		return m_v;
 	}
 
-	const cinolib::Color& Style::color() const
+	cinolib::Color Style::color(float _saturation, float _value, float _alpha) const
 	{
-		return m_color;
+		assert(_saturation >= 0.0f && _saturation <= 1.0f);
+		assert(_value >= 0.0f && _value <= 1.0f);
+		assert(_alpha >= 0.0f && _alpha <= 1.0f);
+		return cinolib::Color::hsv2rgb(m_h / 360.0f, m_s * _saturation, m_v * _value, _alpha);
 	}
 
 }
