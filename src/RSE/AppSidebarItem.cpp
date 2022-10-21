@@ -51,6 +51,7 @@ namespace RSE
 				}
 			}
 			file.close();
+			std::cout << "Saved to '" << filename << "'" << std::endl;
 		}
 	}
 
@@ -116,8 +117,10 @@ namespace RSE
 			{
 				verts.push_back(child->hexControl().verts());
 			}
-			file << Refinement::build(verts, m_sourceControl.size()).cppCode();
+			const Refinement refinement{ Refinement::build(verts, m_sourceControl.size()) };
+			file << refinement.cppCode();
 			file.close();
+			std::cout << "Exported " << refinement.vertices().size() << " vertices and " << refinement.indices().size() << " children to '" << filename << "'" << std::endl;
 		}
 	}
 
