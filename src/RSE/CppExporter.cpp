@@ -15,10 +15,10 @@ namespace RSE
 		ss << type << " " << name << " {{\n";
 		for (const HexVerts& child : _children)
 		{
-			ss << "\t{ ";
+			ss << "\t" << childType << "{ ";
 			for (const RVec3 vert : child)
 			{
-				ss << "{" << vert.x() << ", " << vert.y() << ", " << vert.z() << "}, ";
+				ss << vecType << "{" << vert.x() << ", " << vert.y() << ", " << vert.z() << "}, ";
 			}
 			ss << " },\n";
 		}
