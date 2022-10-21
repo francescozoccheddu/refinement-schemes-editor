@@ -134,7 +134,11 @@ namespace RSE
 
 	void AppSidebarItem::addChild()
 	{
-		m_children.push_back(new ChildControl{ m_sourceControl.clipMin(), m_sourceControl.clipMax() });
+		addChild(m_sourceControl.clipMin(), m_sourceControl.clipMax());
+	}
+	void AppSidebarItem::addChild(const IVec3& _min, const IVec3& _max)
+	{
+		m_children.push_back(new ChildControl{ _min, _max });
 		m_children.back()->setExpanded(false);
 		onChildAdd();
 		doUpdateColors();
@@ -294,6 +298,29 @@ namespace RSE
 		}
 	}
 
+	void AppSidebarItem::dense()
+	{
+		const IVec3 min{ m_sourceControl.clipMin() };
+		const IVec3 max{ m_sourceControl.clipMax() };
+		IVec3 a, b;
+		for (Int x{ min.x() }; x < max.x(); x++)
+		{
+			a.x() = x;
+			b.x() = x + 1;
+			for (Int y{ min.y() }; y < max.y(); y++)
+			{
+				a.y() = y;
+				b.y() = y + 1;
+				for (Int z{ min.y() }; z < max.z(); z++)
+				{
+					a.z() = z;
+					b.z() = z + 1;
+					addChild(a, b);
+				}
+			}
+		}
+	}
+
 	void AppSidebarItem::draw()
 	{
 		ImGui::Unindent(ImGui::GetTreeNodeToLabelSpacing());
@@ -310,6 +337,17 @@ namespace RSE
 				case SourceControl::EResult::ClipUpdated:
 					onSourceClipUpdate();
 					break;
+			}
+		}
+		// edit
+		ImGui::Spacing();
+		ImGui::SetNextItemOpen(false, ImGuiCond_Once);
+		if (ImGui::CollapsingHeader("Edit"))
+		{
+			ImGui::Spacing();
+			if (ImGui::Button("Dense"))
+			{
+				dense();
 			}
 		}
 		// children

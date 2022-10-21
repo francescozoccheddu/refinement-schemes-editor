@@ -52,6 +52,10 @@ namespace RSE
 
 		void save(bool _new);
 
+		void dense();
+
+		void addChild(const IVec3& _min, const IVec3& _max);
+
 		void addChild();
 
 		void removeChild(std::size_t _child);

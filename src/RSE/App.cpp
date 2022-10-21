@@ -287,8 +287,15 @@ namespace RSE
 			switch (_key)
 			{
 				case GLFW_KEY_A:
-					m_appWidget.addChild();
-					m_appWidget.setActiveChild(m_appWidget.children().size() - 1);
+					if (_modifiers == GLFW_MOD_SHIFT)
+					{
+						m_appWidget.dense();
+					}
+					else
+					{
+						m_appWidget.addChild();
+						m_appWidget.setActiveChild(m_appWidget.children().size() - 1);
+					}
 					return true;
 				case GLFW_KEY_E:
 					if (m_appWidget.activeChildIndex().has_value())
@@ -347,12 +354,26 @@ namespace RSE
 				case GLFW_KEY_S:
 					m_appWidget.setSingleMode(!m_appWidget.singleMode());
 					return true;
-				case GLFW_KEY_Q:
-					if (m_appWidget.activeChildIndex().has_value())
-					{
+			}
+			if (m_appWidget.activeChildIndex().has_value())
+			{
+				const std::size_t child{ m_appWidget.activeChildIndex().value() };
+				switch (_key)
+				{
+					case GLFW_KEY_E:
+						onSetVert();
+						onAdvanceActiveVert(true);
+						return true;
+					case GLFW_KEY_Q:
 						m_appWidget.cubeActive();
-					}
-					return true;
+						return true;
+					case GLFW_KEY_P:
+						m_appWidget.dense();
+						return true;
+					case GLFW_KEY_DELETE:
+						m_appWidget.removeChild(child);
+						return true;
+				}
 			}
 			return false;
 		};
