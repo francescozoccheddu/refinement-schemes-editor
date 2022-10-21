@@ -77,11 +77,9 @@ namespace RSE
 			displUpdated = true;
 		}
 		const auto dragInt3{ [this, speed](IVec3& _vec, const char* _label) {
-			int xyz[3] { static_cast<int>(_vec.x()), static_cast<int>(_vec.y()), static_cast<int>(_vec.z())};
-			const bool updated{ ImGui::DragInt3(_label, xyz, speed, 0, static_cast<int>(m_size), "%d",ImGuiSliderFlags_AlwaysClamp)};
-			_vec.x() = static_cast<Int>(xyz[0]);
-			_vec.y() = static_cast<Int>(xyz[1]);
-			_vec.z() = static_cast<Int>(xyz[2]);
+			Vec3<int> ivec { _vec.cast<int>() };
+			const bool updated{ ImGui::DragInt3(_label, ivec.ptr(), speed, 0, static_cast<int>(m_size), "%d",ImGuiSliderFlags_AlwaysClamp)};
+			_vec = ivec.cast<Int>();
 			return updated;
 		} };
 		ImGui::Spacing();

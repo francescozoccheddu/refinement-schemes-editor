@@ -11,7 +11,7 @@
 #include <fstream>
 #include <string>
 #include <RSE/Style.hpp>
-#include <RSE/Refinement.hpp>
+#include <RSE/CppExporter.hpp>
 #include <iterator>
 
 namespace RSE
@@ -111,16 +111,21 @@ namespace RSE
 		{
 			std::ofstream file{};
 			file.open(filename);
-			std::vector<HexVertsU> verts{};
-			verts.reserve(m_children.size());
+			std::vector<HexVerts> children{};
+			children.reserve(m_children.size());
 			for (const ChildControl* child : m_children)
 			{
-				verts.push_back(child->hexControl().verts());
+				const HexVertsU& iVerts{ child->hexControl().verts() };
+				HexVerts rVerts;
+				for (std::size_t i{}; i < 8; i++)
+				{
+					rVerts[i] = iVerts[i].cast<Real>() / static_cast<Real>(m_sourceControl.size());
+				}
+				children.push_back(rVerts);
 			}
-			const Refinement refinement{ Refinement::build(verts, m_sourceControl.size()) };
-			file << refinement.cppCode();
+			file << CppExporter{}(children);
 			file.close();
-			std::cout << "Exported " << refinement.vertices().size() << " vertices and " << refinement.indices().size() << " children to '" << filename << "'" << std::endl;
+			std::cout << "Exported " << children.size() << " children to '" << filename << "'" << std::endl;
 		}
 	}
 

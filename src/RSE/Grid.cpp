@@ -2,46 +2,10 @@
 
 #include <utility>
 #include <cmath>
+#include <cinolib/geometry/lerp.hpp>
 
 namespace RSE
 {
-
-	typename Grid::FastVert Grid::lerp1(const FastEdge& _src, FastValue _alpha)
-	{
-		return _src[0] * (1.0f - _alpha) + _src[1] * _alpha;
-	}
-
-	typename Grid::FastVert Grid::lerp2(const FastQuad& _src, const FastVec2& _alpha)
-	{
-		const FastVert y1 = lerp1({ _src[0], _src[1] }, _alpha.x());
-		const FastVert y2 = lerp1({ _src[2], _src[3] }, _alpha.x());
-		return lerp1({ y1, y2 }, _alpha.y());
-	}
-
-	typename Grid::FastVert Grid::lerp3(const FastHex& _src, const FastVert& _alpha)
-	{
-		const FastVert z1 = lerp2(FastQuad{ _src[0], _src[1], _src[2], _src[3] }, FastVec2{ _alpha.x(), _alpha.y() });
-		const FastVert z2 = lerp2(FastQuad{ _src[4], _src[5], _src[6], _src[7] }, FastVec2{ _alpha.x(), _alpha.y() });
-		return lerp1({ z1, z2 }, _alpha.z());
-	}
-
-	template<typename TOut, typename TIn>
-	typename std::conditional_t<std::is_same_v<TIn, TOut>, const Vec3<TOut>&, Vec3<TOut>> genCast(const Vec3<TIn>& _vec)
-	{
-		if constexpr (std::is_same_v<TIn, TOut>)
-		{
-			return _vec;
-		}
-		else
-		{
-			Vec3<TOut> out;
-			for (std::size_t d{}; d < 3; d++)
-			{
-				out[d] = static_cast<TOut>(_vec[d]);
-			}
-			return out;
-		}
-	}
 
 	template<typename TOut, typename TIn, std::size_t TSize>
 	typename std::conditional_t<std::is_same_v<TIn, TOut>, const std::array<Vec3<TOut>, TSize>&, std::array<Vec3<TOut>, TSize>> genCast(const std::array<Vec3<TIn>, TSize>& _vecs)
@@ -55,7 +19,7 @@ namespace RSE
 			std::array<Vec3<TOut>, TSize> out;
 			for (std::size_t i{}; i < _vecs.size(); i++)
 			{
-				out[i] = genCast<TOut>(_vecs[i]);
+				out[i] = _vecs[i].cast<TOut>();
 			}
 			return out;
 		}
@@ -74,7 +38,7 @@ namespace RSE
 			out.resize(_vecs.size());
 			for (std::size_t i{}; i < _vecs.size(); i++)
 			{
-				out[i] = genCast<TOut>(_vecs[i]);
+				out[i] = _vecs[i].cast<TOut>();
 			}
 			return out;
 		}
@@ -82,17 +46,17 @@ namespace RSE
 
 	typename Grid::CastResult<Grid::FastVert> Grid::cast(const RVec3& _vec)
 	{
-		return genCast<FastValue>(_vec);
+		return _vec.cast<FastValue>();
 	}
 
 	typename Grid::CastResult<Grid::FastVert> Grid::cast(const IVec3& _vec)
 	{
-		return genCast<FastValue>(_vec);
+		return _vec.cast<FastValue>();
 	}
 
 	typename Grid::CastResult<RVec3> Grid::cast(const FastVert& _vec)
 	{
-		return genCast<Real>(_vec);
+		return _vec.cast<Real>();
 	}
 
 	typename Grid::CastResult<Grid::FastHex> Grid::cast(const HexVerts& _verts)
@@ -152,7 +116,7 @@ namespace RSE
 				for (Int x{}; x < layers; x++)
 				{
 					coord.x() = x;
-					m_points[i++] = lerp3(sourceHex, cast(coord) / static_cast<FastValue>(_size));
+					m_points[i++] = cinolib::lerp3(sourceHex, cast(coord) / static_cast<FastValue>(_size));
 				}
 			}
 		}

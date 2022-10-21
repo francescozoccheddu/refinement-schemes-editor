@@ -49,7 +49,8 @@ namespace RSE
 			return proj;
 		} };
 		constexpr auto toImVec{ [](const RVec3& _vec) {
-			return ImVec2{static_cast<float>(_vec.x()), static_cast<float>(_vec.y())};
+			cinolib::vec3<float> fvec{_vec.cast<float>()};
+			return ImVec2{fvec.x(), fvec.y()};
 		} };
 		origin = project(origin);
 		std::array<std::pair<RVec3, ImColor>, 3> tips{

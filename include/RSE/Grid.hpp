@@ -29,12 +29,6 @@ namespace RSE
 		std::vector<FastVert> m_points;
 		Int m_size;
 
-		static FastVert lerp1(const FastEdge& _src, FastValue _alpha);
-
-		static FastVert lerp2(const FastQuad& _src, const FastVec2& _alpha);
-
-		static FastVert lerp3(const FastHex& _src, const FastVert& _alpha);
-
 		static CastResult<RVec3> cast(const FastVert& _vec);
 
 		static CastResult<FastVert> cast(const RVec3& _vec);

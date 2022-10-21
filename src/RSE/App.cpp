@@ -237,7 +237,7 @@ namespace RSE
 		vertsOrder.resize(8);
 		for (std::size_t i{}; i < 8; i++)
 		{
-			vertsOrder[i] = static_cast<unsigned int>(hexUtils::cinolibVertsOrder[i]);
+			vertsOrder[i] = static_cast<unsigned int>(hexUtils::cinolibHexInds[i]);
 		}
 		// markers
 		m_canvas.markers.resize(2);
