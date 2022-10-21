@@ -73,7 +73,9 @@ namespace RSE
 
 		void load();
 
-		void exportCode() const;
+		std::string exportCode() const;
+		void exportCodeToFile() const;
+		void exportCodeToClipboard() const;
 
 		void setActiveVert(std::size_t _vert);
 

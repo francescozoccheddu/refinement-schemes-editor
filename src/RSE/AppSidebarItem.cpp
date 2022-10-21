@@ -3,12 +3,14 @@
 #include <cinolib/color.h>
 #include <cinolib/gl/file_dialog_save.h>
 #include <cinolib/gl/file_dialog_open.h>
+#include <cinolib/gl/gl_glfw.h>
 #include <cpputils/serialization/Serializer.hpp>
 #include <cpputils/serialization/Deserializer.hpp>
 #include <stdexcept>
 #include <imgui.h>
 #include <algorithm>
 #include <fstream>
+#include <cctype>
 #include <string>
 #include <RSE/Style.hpp>
 #include <RSE/CppExporter.hpp>
@@ -106,28 +108,64 @@ namespace RSE
 		}
 	}
 
-	void AppSidebarItem::exportCode() const
+	std::string AppSidebarItem::exportCode() const
+	{
+		std::vector<HexVerts> children{};
+		children.reserve(m_children.size());
+		for (const ChildControl* child : m_children)
+		{
+			const HexVertsU& iVerts{ child->hexControl().verts() };
+			HexVerts rVerts;
+			for (std::size_t i{}; i < 8; i++)
+			{
+				rVerts[i] = iVerts[i].cast<Real>() / static_cast<Real>(m_sourceControl.size());
+			}
+			children.push_back(rVerts);
+		}
+		CppExporter exporter{};
+		exporter.name = "";
+		if (m_file.has_value())
+		{
+			std::string project{ m_file.value() };
+			project = project.substr(project.find_last_of("/\\") + 1);
+			project = project.substr(0, project.find_last_of("."));
+			std::cout << project;
+			if (!project.empty() && std::isdigit(project[0]))
+			{
+				project[0] = '_';
+			}
+			for (char& c : project)
+			{
+				if (!(std::isalnum(c) || c == '_'))
+				{
+					c = '_';
+				}
+			}
+			exporter.name = project;
+		}
+		if (exporter.name.empty())
+		{
+			exporter.name = m_file.value_or("unnamed");
+		}
+		return exporter(children);
+	}
+
+	void AppSidebarItem::exportCodeToClipboard() const
+	{
+		glfwSetClipboardString(nullptr, exportCode().c_str());
+		std::cout << "Exported " << m_children.size() << " children to the clipboard" << std::endl;
+	}
+
+	void AppSidebarItem::exportCodeToFile() const
 	{
 		const std::string filename{ cinolib::file_dialog_save() };
 		if (!filename.empty())
 		{
 			std::ofstream file{};
 			file.open(filename);
-			std::vector<HexVerts> children{};
-			children.reserve(m_children.size());
-			for (const ChildControl* child : m_children)
-			{
-				const HexVertsU& iVerts{ child->hexControl().verts() };
-				HexVerts rVerts;
-				for (std::size_t i{}; i < 8; i++)
-				{
-					rVerts[i] = iVerts[i].cast<Real>() / static_cast<Real>(m_sourceControl.size());
-				}
-				children.push_back(rVerts);
-			}
-			file << CppExporter{}(children);
+			file << exportCode();
 			file.close();
-			std::cout << "Exported " << children.size() << " children to '" << filename << "'" << std::endl;
+			std::cout << "Exported " << m_children.size() << " children to '" << filename << "'" << std::endl;
 		}
 	}
 
@@ -546,7 +584,7 @@ namespace RSE
 			}
 			ImGui::SameLine();
 		}
-		if (ImGui::Button("Save as..."))
+		if (ImGui::Button("Save as"))
 		{
 			save(true);
 		}
@@ -558,7 +596,12 @@ namespace RSE
 		ImGui::SameLine();
 		if (ImGui::Button("Export"))
 		{
-			exportCode();
+			exportCodeToFile();
+		}
+		ImGui::SameLine();
+		if (ImGui::Button("Export to clipboard"))
+		{
+			exportCodeToClipboard();
 		}
 		ImGui::Spacing();
 	}
