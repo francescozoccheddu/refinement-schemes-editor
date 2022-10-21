@@ -4,6 +4,7 @@
 #include <RSE/types.hpp>
 #include <RSE/ChildControl.hpp>
 #include <RSE/HexControl.hpp>
+#include <RSE/SourceControl.hpp>
 #include <vector>
 #include <cpputils/collections/Event.hpp>
 #include <cpputils/collections/DereferenceIterable.hpp>
@@ -24,8 +25,7 @@ namespace RSE
 		static constexpr Real c_maxSourceExtent{ 5 };
 
 		std::vector<ChildControl*> m_children;
-		RHexControl m_sourceControl;
-		Int m_sourceSize;
+		SourceControl m_sourceControl;
 		std::optional<std::size_t> m_activeChild;
 		bool m_hasAnySolo;
 		bool m_singleMode;
@@ -38,6 +38,7 @@ namespace RSE
 		AppSidebarItem();
 
 		cpputils::collections::Event<AppSidebarItem> onSourceUpdate;
+		cpputils::collections::Event<AppSidebarItem> onSourceClipUpdate;
 		cpputils::collections::Event<AppSidebarItem> onChildrenClear;
 		cpputils::collections::Event<AppSidebarItem> onChildAdd;
 		cpputils::collections::Event<AppSidebarItem> onActiveVertChange;
@@ -60,6 +61,14 @@ namespace RSE
 
 		void setActiveVert(const IVec3& _vert);
 
+		bool singleMode() const;
+
+		void setSingleMode(bool _enabled);
+
+		void cubeActive();
+
+		void setClip(const IVec3& _min, const IVec3& _max);
+
 		std::optional<std::size_t> activeChildIndex() const;
 
 		const ChildControl& activeChild() const;
@@ -68,13 +77,11 @@ namespace RSE
 
 		void setActiveChild(std::optional<std::size_t> _child);
 
-		const RHexControl& sourceControl() const;
-
-		Int sourceSize() const;
+		const SourceControl& source() const;
 
 		bool visible(const ChildControl& _child) const;
 
-		ChildControls childControls() const;
+		ChildControls children() const;
 
 		void draw() override final;
 

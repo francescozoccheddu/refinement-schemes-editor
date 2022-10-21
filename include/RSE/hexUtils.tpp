@@ -10,13 +10,9 @@ namespace RSE::hexUtils
 {
 
 	template<typename TValue>
-	HexVertData<Vec3<TValue>> cubeVerts(TValue _min, TValue _max)
+	HexVertData<Vec3<TValue>> cubeVerts(const Vec3<TValue>& _min, const Vec3<TValue>& _max)
 	{
-		if (_min > _max)
-		{
-			throw std::logic_error{ "min > max" };
-		}
-		return { Vec3<TValue>{ _min,_min,_min }, Vec3<TValue>{ _max,_min,_min }, Vec3<TValue>{ _min,_max,_min }, Vec3<TValue>{ _max,_max,_min }, Vec3<TValue>{ _min,_min,_max }, Vec3<TValue>{ _max,_min,_max }, Vec3<TValue>{ _min,_max,_max }, Vec3<TValue>{ _max,_max,_max } };
+		return { Vec3<TValue>{ _min.x(),_min.y(),_min.z() }, Vec3<TValue>{ _max.x(),_min.y(),_min.z() }, Vec3<TValue>{ _min.x(),_max.y(),_min.z() }, Vec3<TValue>{ _max.x(),_max.y(),_min.z() }, Vec3<TValue>{ _min.x(),_min.y(),_max.z() }, Vec3<TValue>{ _max.x(),_min.y(),_max.z() }, Vec3<TValue>{ _min.x(),_max.y(),_max.z() }, Vec3<TValue>{ _max.x(),_max.y(),_max.z() } };
 	}
 
 	template<typename TValue>

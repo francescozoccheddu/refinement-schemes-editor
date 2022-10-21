@@ -69,7 +69,9 @@ namespace RSE
 
 		RVec3 point(const IVec3& _coords) const;
 
-		std::size_t closestToRay(const RVec3& _origin, const RVec3 _dir) const;
+		std::size_t closestToRay(const RVec3& _origin, const RVec3& _dir, const IVec3& _min, const IVec3& _max) const;
+
+		std::size_t closestToRay(const RVec3& _origin, const RVec3& _dir) const;
 
 	};
 

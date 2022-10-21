@@ -18,12 +18,8 @@ namespace RSE
 		}
 	}
 
-	ChildControl::ChildControl(Int _size) : m_expanded{ false }, m_visible{ true }, m_solo{ false }, m_hexControl{ IHexControl::cubeVerts(0,_size), true }, m_maxSize{ _size }, m_style{ 0.0f,0.0f,0.5f }
+	ChildControl::ChildControl(const IVec3& _min, const IVec3& _max) : m_expanded{ false }, m_visible{ true }, m_solo{ false }, m_hexControl{ IHexControl::cubeVerts(_min, _max), true }, m_maxSize{ std::max({_max.x(), _max.y(), _max.z()})}, m_style{0.0f,0.0f,0.5f}
 	{
-		if (_size <= 0)
-		{
-			throw std::logic_error{ "size must be positive" };
-		}
 	}
 
 	Style& ChildControl::style()
@@ -94,18 +90,9 @@ namespace RSE
 		return m_maxSize;
 	}
 
-	ChildControl::EResult ChildControl::draw(Int _size, EVisibilityMode _visibilityMode)
-	{
-		return draw(_size, IHexControl::pasteVerts(), IHexControl::pasteVert(), _visibilityMode);
-	}
-
-	ChildControl::EResult ChildControl::draw(Int _size, const std::optional<HexVertsU>& _copiedVerts, const std::optional<IVec3>& _copiedVert, EVisibilityMode _visibilityMode)
+	ChildControl::EResult ChildControl::draw(const IVec3& _min, const IVec3& _max, const std::optional<HexVertsU>& _copiedVerts, const std::optional<IVec3>& _copiedVert, EVisibilityMode _visibilityMode)
 	{
 		m_style.pushImGui();
-		if (_size < m_maxSize)
-		{
-			throw std::logic_error{ "size < maxSize" };
-		}
 		bool updated{ false };
 		// visibility
 		if (_visibilityMode != EVisibilityMode::Hidden)
@@ -143,7 +130,7 @@ namespace RSE
 				m_hexControl.setActiveVert(0);
 			}
 			ImGui::Spacing();
-			updated |= m_hexControl.draw(true, 0, _size, _copiedVerts, _copiedVert);
+			updated |= m_hexControl.draw(true, _min, _max, _copiedVerts, _copiedVert);
 		}
 		Style::popImGui();
 		if (updated)

@@ -17,15 +17,19 @@ namespace RSE
 
 	private:
 
+		static const HexVerts cubeVerts;
 		cinolib::GLcanvas m_canvas;
 		cinolib::DrawableSegmentSoup m_gridMesh;
+		cinolib::DrawableSegmentSoup m_borderMesh;
 		AxesGuiItem m_axesWidget;
 		AppSidebarItem m_appWidget;
 		std::vector<cinolib::DrawableHexmesh<>*> m_childMeshes;
 		Grid m_grid;
+		std::vector<unsigned int> vertsOrder;
 		std::size_t m_mouseGridIndex{};
 
 		void onGridUpdate();
+		void onGridClipUpdate();
 		void onChildUpdate(std::size_t _child);
 		void onChildAdd();
 		void onChildrenClear();

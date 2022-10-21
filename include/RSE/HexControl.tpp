@@ -32,15 +32,9 @@ namespace RSE::internal
 	}
 
 	template<bool TInt>
-	HexControl<TInt>::Verts HexControl<TInt>::cubeVerts(Value _min, Value _max)
+	HexControl<TInt>::Verts HexControl<TInt>::cubeVerts(const Vert& _min, const Vert& _max)
 	{
 		return hexUtils::cubeVerts<Value>(_min, _max);
-	}
-
-	template<bool TInt>
-	HexControl<TInt>::Verts HexControl<TInt>::cubeVerts(Value _size)
-	{
-		return hexUtils::cubeVerts<Value>(_size);
 	}
 
 	template<bool TInt>
@@ -190,12 +184,8 @@ namespace RSE::internal
 	}
 
 	template<bool TInt>
-	bool HexControl<TInt>::draw(bool _activeVertSel, Value _min, Value _max, std::optional<Verts>& _copiedVerts, std::optional<Vert>& _copiedVert)
+	bool HexControl<TInt>::draw(bool _activeVertSel, const Vert& _min, const Vert& _max, std::optional<Verts>& _copiedVerts, std::optional<Vert>& _copiedVert)
 	{
-		if (_min > _max)
-		{
-			throw std::logic_error{ "min > max" };
-		}
 		bool updated{ false };
 		// cube
 		if (ImGui::SmallButton("Cube"))
@@ -287,22 +277,25 @@ namespace RSE::internal
 			Vert& vert{ m_verts[i] };
 			{
 				using ImGuiValue = std::conditional_t<TInt, int, float>;
+				const Value minMin{ std::min({_min.x(), _min.y(), _min.z()}) };
+				const Value maxMax{ std::max({ _max.x(), _max.y(), _max.z() }) };
 				ImGuiValue xyz[3]{ static_cast<ImGuiValue>(vert.x()), static_cast<ImGuiValue>(vert.y()), static_cast<ImGuiValue>(vert.z()) };
-				const float speed{ static_cast<float>(_max - _min) / 100.0f };
+				const float speed{ static_cast<float>(maxMax - minMin) / 100.0f };
 				bool vertUpdated;
 				if constexpr (TInt)
 				{
-					vertUpdated = ImGui::DragInt3("", xyz, speed, static_cast<int>(_min), static_cast<int>(_max), "%d", ImGuiSliderFlags_AlwaysClamp);
+					vertUpdated = ImGui::DragInt3("", xyz, speed, static_cast<int>(minMin), static_cast<int>(maxMax), "%d", ImGuiSliderFlags_AlwaysClamp);
 				}
 				else
 				{
-					vertUpdated = ImGui::DragFloat3("", xyz, speed, static_cast<float>(_min), static_cast<float>(_max), "%f", ImGuiSliderFlags_AlwaysClamp);
+					vertUpdated = ImGui::DragFloat3("", xyz, speed, static_cast<float>(minMin), static_cast<float>(maxMax), "%f", ImGuiSliderFlags_AlwaysClamp);
 				}
 				if (vertUpdated)
 				{
-					vert.x() = static_cast<Value>(xyz[0]);
-					vert.y() = static_cast<Value>(xyz[1]);
-					vert.z() = static_cast<Value>(xyz[2]);
+					for (unsigned int d{}; d < 3; d++)
+					{
+						vert[d] = std::clamp(static_cast<Value>(xyz[d]), _min[d], _max[d]);
+					}
 					updated = true;
 				}
 			}
@@ -331,7 +324,7 @@ namespace RSE::internal
 	}
 
 	template<bool TInt>
-	bool HexControl<TInt>::draw(bool _activeVertSel, Value _min, Value _max, const std::optional<Verts>& _copiedVerts, const std::optional<Vert>& _copiedVert)
+	bool HexControl<TInt>::draw(bool _activeVertSel, const Vert& _min, const Vert& _max, const std::optional<Verts>& _copiedVerts, const std::optional<Vert>& _copiedVert)
 	{
 		std::optional<Verts> tempVerts{ _copiedVerts };
 		std::optional<Vert> tempVert{ _copiedVert };
@@ -348,9 +341,15 @@ namespace RSE::internal
 	}
 
 	template<bool TInt>
-	bool HexControl<TInt>::draw(bool _activeVertSel, Value _min, Value _max)
+	bool HexControl<TInt>::draw(bool _activeVertSel, const Vert& _min, const Vert& _max)
 	{
 		return draw(_activeVertSel, _min, _max, pasteVerts(), pasteVert());
+	}
+
+	template<bool TInt>
+	bool HexControl<TInt>::draw(bool _activeVertSel, Value _min, Value _max)
+	{
+		return draw(_activeVertSel, Vert{_min, _min, _min}, Vert{_max, _max, _max});
 	}
 
 }

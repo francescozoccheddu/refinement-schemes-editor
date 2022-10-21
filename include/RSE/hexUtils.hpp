@@ -7,10 +7,7 @@ namespace RSE::hexUtils
 {
 
 	template<typename TValue>
-	HexVertData<Vec3<TValue>> cubeVerts(TValue _min, TValue _max);
-
-	template<typename TValue>
-	HexVertData<Vec3<TValue>> cubeVerts(TValue _size = TValue{ 2 });
+	HexVertData<Vec3<TValue>> cubeVerts(const Vec3<TValue>& _min, const Vec3<TValue>& _max);
 
 	template<typename TValue>
 	HexVertData<Vec3<TValue>> sortVerts(const HexVertData<Vec3<TValue>>& _verts);

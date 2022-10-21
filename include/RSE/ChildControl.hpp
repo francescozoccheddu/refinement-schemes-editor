@@ -34,7 +34,7 @@ namespace RSE
 			SomeSolo, Default, Hidden
 		};
 
-		ChildControl(Int _size);
+		ChildControl(const IVec3& _min, const IVec3& _max);
 
 		Style& style();
 
@@ -62,9 +62,7 @@ namespace RSE
 
 		Int maxSize() const;
 
-		EResult draw(Int _size, EVisibilityMode _visibilityMode = EVisibilityMode::Default);
-
-		EResult draw(Int _size, const std::optional<HexVertsU>& _copiedVerts, const std::optional<IVec3>& _copiedVert, EVisibilityMode _visibilityMode = EVisibilityMode::Default);
+		EResult draw(const IVec3& _min, const IVec3& _max, const std::optional<HexVertsU>& _copiedVerts, const std::optional<IVec3>& _copiedVert, EVisibilityMode _visibilityMode = EVisibilityMode::Default);
 
 	};
 

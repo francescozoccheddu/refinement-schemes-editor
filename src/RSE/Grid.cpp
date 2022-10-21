@@ -188,7 +188,6 @@ namespace RSE
 		coord.y() = index % layers;
 		index /= layers;
 		coord.z() = index;
-		std::cout << coord << std::endl;
 		return coord;
 	}
 
@@ -213,19 +212,35 @@ namespace RSE
 		return point(index(_coords));
 	}
 
-	std::size_t Grid::closestToRay(const RVec3& _origin, const RVec3 _dir) const
+	std::size_t Grid::closestToRay(const RVec3& _origin, const RVec3& _dir) const
+	{
+		return closestToRay(_origin, _dir, IVec3{ 0,0,0 }, IVec3{ m_size, m_size, m_size });
+	}
+
+	std::size_t Grid::closestToRay(const RVec3& _origin, const RVec3& _dir, const IVec3& _min, const IVec3& _max) const
 	{
 		FastValue minDist{ std::numeric_limits<FastValue>::infinity() };
 		std::size_t minI{};
 		const FastVert& forigin{ cast(_origin) }, & fdir{ cast(_dir) };
-		for (std::size_t i{}; i < m_points.size(); i++)
+		IVec3 c;
+		for (Int x{ _min.x() }; x <= _max.x(); x++)
 		{
-			bool behind;
-			const FastValue dist{ pointLineSqrDist(forigin, fdir, m_points[i], behind) };
-			if (dist < minDist)
+			c.x() = x;
+			for (Int y{ _min.y() }; y <= _max.y(); y++)
 			{
-				minDist = dist;
-				minI = i;
+				c.y() = y;
+				for (Int z{ _min.z() }; z <= _max.z(); z++)
+				{
+					c.z() = z;
+					const std::size_t i{ index(c) };
+					bool behind;
+					const FastValue dist{ pointLineSqrDist(forigin, fdir, m_points[i], behind) };
+					if (dist < minDist)
+					{
+						minDist = dist;
+						minI = i;
+					}
+				}
 			}
 		}
 		return minI;

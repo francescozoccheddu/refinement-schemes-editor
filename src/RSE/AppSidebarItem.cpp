@@ -17,7 +17,7 @@
 namespace RSE
 {
 
-	AppSidebarItem::AppSidebarItem() : cinolib::SideBarItem{ "App" }, m_children{}, m_sourceSize{ 3 }, m_sourceControl{ RHexControl::cubeVerts(-c_maxSourceExtent, c_maxSourceExtent) }, m_activeChild{}, onSourceUpdate{}, m_hasAnySolo{ false }, m_singleMode{ false }
+	AppSidebarItem::AppSidebarItem() : cinolib::SideBarItem{ "App" }, m_children{}, m_sourceControl{}, m_activeChild{}, onSourceUpdate{}, m_hasAnySolo{ false }, m_singleMode{ false }
 	{
 	}
 
@@ -42,7 +42,7 @@ namespace RSE
 			std::ofstream file{};
 			file.open(filename);
 			cpputils::serialization::Serializer s{ file };
-			s << m_sourceSize << m_children.size();
+			s << m_sourceControl.size() << m_children.size();
 			for (const ChildControl* child : m_children)
 			{
 				for (const IVec3& vert : child->hexControl().verts())
@@ -79,13 +79,15 @@ namespace RSE
 			std::ifstream file{};
 			file.open(filename);
 			cpputils::serialization::Deserializer s{ file };
-			s >> m_sourceSize;
+			Int size;
+			s >> size;
+			m_sourceControl.setSize(size);
 			std::size_t childrenSize{};
 			s >> childrenSize;
 			m_children.reserve(childrenSize);
 			while (childrenSize > 0)
 			{
-				ChildControl& child{ *new ChildControl{1} };
+				ChildControl& child{ *new ChildControl{m_sourceControl.clipMin(), m_sourceControl.clipMax()} };
 				m_children.push_back(&child);
 				HexVertsU verts;
 				for (IVec3& vert : verts)
@@ -114,7 +116,7 @@ namespace RSE
 			{
 				verts.push_back(child->hexControl().verts());
 			}
-			file << Refinement::build(verts, m_sourceSize).cppCode();
+			file << Refinement::build(verts, m_sourceControl.size()).cppCode();
 			file.close();
 		}
 	}
@@ -122,7 +124,7 @@ namespace RSE
 
 	void AppSidebarItem::addChild()
 	{
-		m_children.push_back(new ChildControl{ m_sourceSize });
+		m_children.push_back(new ChildControl{ m_sourceControl.clipMin(), m_sourceControl.clipMax() });
 		m_children.back()->setExpanded(false);
 		onChildAdd();
 		doUpdateColors();
@@ -139,13 +141,13 @@ namespace RSE
 			m_activeChild = std::nullopt;
 			onActiveVertChange();
 		}
-		onChildRemove(_child);
+		delete m_children[_child];
 		m_children.erase(m_children.begin() + _child);
 		if (m_activeChild.has_value() && m_activeChild.value() > _child)
 		{
 			m_activeChild = m_activeChild.value() - 1;
 		}
-		delete& m_children[_child];
+		onChildRemove(_child);
 		doUpdateColors();
 	}
 
@@ -166,7 +168,7 @@ namespace RSE
 			throw std::logic_error{ "no active child" };
 		}
 		m_children[m_activeChild.value()]->setActiveVert(_vert);
-		m_sourceSize = std::max(m_sourceSize, m_children[m_activeChild.value()]->maxSize());
+		m_sourceControl.setSize(std::max(m_sourceControl.size(), m_children[m_activeChild.value()]->maxSize()));
 		onChildUpdate(m_activeChild.value());
 		onActiveVertChange();
 	}
@@ -211,17 +213,12 @@ namespace RSE
 		}
 	}
 
-	const RHexControl& AppSidebarItem::sourceControl() const
+	const SourceControl& AppSidebarItem::source() const
 	{
 		return m_sourceControl;
 	}
 
-	Int AppSidebarItem::sourceSize() const
-	{
-		return m_sourceSize;
-	}
-
-	AppSidebarItem::ChildControls AppSidebarItem::childControls() const
+	AppSidebarItem::ChildControls AppSidebarItem::children() const
 	{
 		return ChildControls{ m_children };
 	}
@@ -242,6 +239,51 @@ namespace RSE
 			: (_child.visible() && (!m_hasAnySolo || _child.solo()));
 	}
 
+	bool AppSidebarItem::singleMode() const
+	{
+		return m_singleMode;
+	}
+
+	void AppSidebarItem::setSingleMode(bool _enabled)
+	{
+		if (_enabled != m_singleMode)
+		{
+			m_singleMode = _enabled;
+			for (std::size_t i{}; i < m_children.size(); i++)
+			{
+				m_children[i]->setVisible(true);
+				m_children[i]->setSolo(false);
+				onChildUpdate(i);
+			}
+		}
+	}
+
+
+	void AppSidebarItem::cubeActive()
+	{
+		if (m_activeChild.has_value())
+		{
+			ChildControl& child{ *m_children[m_activeChild.value()] };
+			const IVec3 oldActiveVert{ child.hexControl().verts()[child.hexControl().activeVert()] };
+			child.setVerts(hexUtils::cubeVerts(m_sourceControl.clipMin(), m_sourceControl.clipMax()));
+			onChildUpdate(m_activeChild.value());
+			if (child.hexControl().verts()[child.hexControl().activeVert()] != oldActiveVert)
+			{
+				onActiveVertChange();
+			}
+		}
+	}
+
+	void AppSidebarItem::setClip(const IVec3& _min, const IVec3& _max)
+	{
+		const IVec3& oldMin{ m_sourceControl.clipMin() }, & oldMax{ m_sourceControl.clipMax() };
+		m_sourceControl.setClip(_min, _max);
+		if (oldMin != _min || oldMax != _max)
+		{
+			onSourceClipUpdate();
+		}
+	}
+
 	void AppSidebarItem::draw()
 	{
 		ImGui::Unindent(ImGui::GetTreeNodeToLabelSpacing());
@@ -250,20 +292,14 @@ namespace RSE
 		ImGui::SetNextItemOpen(false, ImGuiCond_Once);
 		if (ImGui::CollapsingHeader("Source"))
 		{
-			bool sourceUpdated{ false };
 			ImGui::Spacing();
-			if (ImGui::DragInt("Size", &m_sourceSize, 1.0f / 100.0f, minRequiredSize(), c_maxSize, "%d", ImGuiSliderFlags_AlwaysClamp))
+			switch (m_sourceControl.draw(minRequiredSize()))
 			{
-				sourceUpdated = true;
-			}
-			ImGui::Spacing();
-			if (m_sourceControl.draw(false, -c_maxSourceExtent, c_maxSourceExtent))
-			{
-				sourceUpdated = true;
-			}
-			if (sourceUpdated)
-			{
-				onSourceUpdate();
+				case SourceControl::EResult::Updated:
+					onSourceUpdate();
+				case SourceControl::EResult::ClipUpdated:
+					onSourceClipUpdate();
+					break;
 			}
 		}
 		// children
@@ -307,7 +343,7 @@ namespace RSE
 						? ChildControl::EVisibilityMode::SomeSolo
 						: ChildControl::EVisibilityMode::Default
 				};
-				const ChildControl::EResult result{ child.draw(m_sourceSize, copiedVerts, copiedVert, mode) };
+				const ChildControl::EResult result{ child.draw(m_sourceControl.clipMin(), m_sourceControl.clipMax(), copiedVerts, copiedVert, mode) };
 				if (wasVisible != visible(child))
 				{
 					onChildUpdate(i);
@@ -331,7 +367,7 @@ namespace RSE
 						{
 							onActiveVertChange();
 						}
-						m_sourceSize = std::max(m_sourceSize, child.maxSize());
+						m_sourceControl.setSize(std::max(m_sourceControl.size(), child.maxSize()));
 						break;
 					case ChildControl::EResult::Removed:
 						removeChild(i);
@@ -356,14 +392,10 @@ namespace RSE
 				addChild();
 			}
 			ImGui::SameLine();
-			if (ImGui::Checkbox("Single mode", &m_singleMode))
+			bool singleMode{ m_singleMode };
+			if (ImGui::Checkbox("Single mode", &singleMode))
 			{
-				for (std::size_t i{}; i < m_children.size(); i++)
-				{
-					m_children[i]->setVisible(true);
-					m_children[i]->setSolo(false);
-					onChildUpdate(i);
-				}
+				setSingleMode(singleMode);
 			}
 			const bool hadAnySolo{ m_hasAnySolo };
 			m_hasAnySolo = false;

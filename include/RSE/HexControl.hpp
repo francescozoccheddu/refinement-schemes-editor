@@ -36,9 +36,7 @@ namespace RSE
 
 		public:
 
-			static Verts cubeVerts(Value _min, Value _max);
-
-			static Verts cubeVerts(Value _size = Value{ 1 });
+			static Verts cubeVerts(const Vert& _min, const Vert& _max);
 
 			HexControl(const Verts& _verts, bool _vertSelection = false);
 
@@ -68,11 +66,13 @@ namespace RSE
 
 			bool valid() const;
 
-			bool draw(bool _activeVertSel, Value _min, Value _max, std::optional<Verts>& _copiedVerts, std::optional<Vert>& _copiedVert);
+			bool draw(bool _activeVertSel, const Vert& _min, const Vert& _max, std::optional<Verts>& _copiedVerts, std::optional<Vert>& _copiedVert);
 
-			bool draw(bool _activeVertSel, Value _min, Value _max, const std::optional<Verts>& _copiedVerts, const std::optional<Vert>& _copiedVert);
+			bool draw(bool _activeVertSel, const Vert& _min, const Vert& _max, const std::optional<Verts>& _copiedVerts, const std::optional<Vert>& _copiedVert);
 
-			bool draw(bool _activeVertSel = true, Value _min = Value{ 0 }, Value _max = std::numeric_limits<Value>::max());
+			bool draw(bool _activeVertSel, const Vert& _min, const Vert& _max);
+
+			bool draw(bool _activeVertSel, Value _min, Value _max);
 
 		};
 
