@@ -17,7 +17,7 @@
 namespace RSE
 {
 
-	AppSidebarItem::AppSidebarItem() : cinolib::SideBarItem{ "App" }, m_children{}, m_sourceControl{}, m_activeChild{}, onSourceUpdate{}, m_hasAnySolo{ false }, m_singleMode{ false }
+	AppSidebarItem::AppSidebarItem() : cinolib::SideBarItem{ "App" }, m_children{}, m_sourceControl{}, m_activeChild{}, onSourceUpdate{}, m_hasAnySolo{ false }, m_singleMode{ false }, m_file{}
 	{
 	}
 
@@ -34,11 +34,12 @@ namespace RSE
 		return minSize;
 	}
 
-	void AppSidebarItem::save() const
+	void AppSidebarItem::save(bool _new)
 	{
-		const std::string filename{ cinolib::file_dialog_save() };
+		const std::string filename{ (_new || !m_file.has_value()) ? cinolib::file_dialog_save() : m_file.value_or("") };
 		if (!filename.empty())
 		{
+			m_file = filename;
 			std::ofstream file{};
 			file.open(filename);
 			cpputils::serialization::Serializer s{ file };
@@ -77,6 +78,7 @@ namespace RSE
 		if (!filename.empty())
 		{
 			clear();
+			m_file = filename;
 			std::ifstream file{};
 			file.open(filename);
 			cpputils::serialization::Deserializer s{ file };
@@ -427,12 +429,25 @@ namespace RSE
 		ImGui::Spacing();
 		ImGui::Separator();
 		ImGui::Spacing();
-		if (ImGui::Button("Save"))
+		if (m_file.has_value())
 		{
-			save();
+			ImGui::TextDisabled(m_file.value().c_str());
+			ImGui::Spacing();
+		}
+		if (m_file.has_value())
+		{
+			if (ImGui::Button("Save"))
+			{
+				save(false);
+			}
+			ImGui::SameLine();
+		}
+		if (ImGui::Button("Save as..."))
+		{
+			save(true);
 		}
 		ImGui::SameLine();
-		if (ImGui::Button("Load"))
+		if (ImGui::Button("Open"))
 		{
 			load();
 		}

@@ -6,6 +6,8 @@
 #include <RSE/HexControl.hpp>
 #include <RSE/SourceControl.hpp>
 #include <vector>
+#include <string>
+#include <optional>
 #include <cpputils/collections/Event.hpp>
 #include <cpputils/collections/DereferenceIterable.hpp>
 
@@ -29,6 +31,7 @@ namespace RSE
 		std::optional<std::size_t> m_activeChild;
 		bool m_hasAnySolo;
 		bool m_singleMode;
+		std::optional<std::string> m_file{};
 
 		Int minRequiredSize() const;
 		void doUpdateColors();
@@ -47,7 +50,7 @@ namespace RSE
 
 		void clear();
 
-		void save() const;
+		void save(bool _new);
 
 		void addChild();
 
