@@ -18,7 +18,15 @@ namespace RSE
 		}
 	}
 
-	ChildControl::ChildControl(const IVec3& _min, const IVec3& _max) : m_expanded{ false }, m_visible{ true }, m_solo{ false }, m_hexControl{ IHexControl::cubeVerts(_min, _max), true }, m_maxSize{ std::max({_max.x(), _max.y(), _max.z()})}, m_style{0.0f,0.0f,0.5f}
+	ChildControl::ChildControl(const HexVertsU& _verts) : m_expanded{ false }, m_visible{ true }, m_solo{ false }, m_hexControl{ _verts, true }, m_style{ 0.0f,0.0f,0.5f }
+	{
+		for (const IVec3& vert : _verts)
+		{
+			m_maxSize = std::max({ m_maxSize, vert.x(), vert.y(), vert.z() });
+		}
+	}
+
+	ChildControl::ChildControl(const IVec3& _min, const IVec3& _max) : ChildControl{ IHexControl::cubeVerts(_min, _max) }
 	{
 	}
 

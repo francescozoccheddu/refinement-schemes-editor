@@ -131,14 +131,19 @@ namespace RSE
 		}
 	}
 
-
 	void AppSidebarItem::addChild()
 	{
 		addChild(m_sourceControl.clipMin(), m_sourceControl.clipMax());
 	}
+
 	void AppSidebarItem::addChild(const IVec3& _min, const IVec3& _max)
 	{
-		m_children.push_back(new ChildControl{ _min, _max });
+		addChild(IHexControl::cubeVerts(_min, _max));
+	}
+
+	void AppSidebarItem::addChild(const HexVertsU& _verts)
+	{
+		m_children.push_back(new ChildControl{ _verts });
 		m_children.back()->setExpanded(false);
 		onChildAdd();
 		doUpdateColors();
@@ -242,8 +247,8 @@ namespace RSE
 		for (std::size_t i{}; i < m_children.size(); i++)
 		{
 			m_children[i]->style() = Style{ (i / static_cast<float>(m_children.size())) * 360.0f };
-			onChildUpdate(i);
 		}
+		updateAllChildren();
 	}
 
 	bool AppSidebarItem::visible(const ChildControl& _child) const
@@ -263,12 +268,12 @@ namespace RSE
 		if (_enabled != m_singleMode)
 		{
 			m_singleMode = _enabled;
-			for (std::size_t i{}; i < m_children.size(); i++)
+			for (ChildControl* child : m_children)
 			{
-				m_children[i]->setVisible(true);
-				m_children[i]->setSolo(false);
-				onChildUpdate(i);
+				child->setVisible(true);
+				child->setSolo(false);
 			}
+			updateAllChildren();
 		}
 	}
 
@@ -290,7 +295,7 @@ namespace RSE
 
 	void AppSidebarItem::setClip(const IVec3& _min, const IVec3& _max)
 	{
-		const IVec3& oldMin{ m_sourceControl.clipMin() }, & oldMax{ m_sourceControl.clipMax() };
+		const IVec3 oldMin{ m_sourceControl.clipMin() }, oldMax{ m_sourceControl.clipMax() };
 		m_sourceControl.setClip(_min, _max);
 		if (oldMin != _min || oldMax != _max)
 		{
@@ -321,6 +326,47 @@ namespace RSE
 		}
 	}
 
+	void AppSidebarItem::flip()
+	{
+		for (ChildControl* child : m_children)
+		{
+			HexVertsU verts{ child->hexControl().verts() };
+			hexUtils::flipVerts(verts, editDim, m_sourceControl.size());
+			child->setVerts(verts);
+		}
+		updateAllChildren();
+	}
+
+	void AppSidebarItem::mirror()
+	{
+		const std::size_t maxI{ m_children.size() };
+		for (std::size_t i{}; i < maxI; i++)
+		{
+			HexVertsU verts{ m_children[i]->hexControl().verts() };
+			hexUtils::flipVerts(verts, editDim, m_sourceControl.size());
+			addChild(verts);
+		}
+	}
+
+	void AppSidebarItem::rotate()
+	{
+		for (ChildControl* child : m_children)
+		{
+			HexVertsU verts{ child->hexControl().verts() };
+			hexUtils::rotateVerts(verts, editDim, m_sourceControl.size());
+			child->setVerts(verts);
+		}
+		updateAllChildren();
+	}
+
+	void AppSidebarItem::updateAllChildren()
+	{
+		for (std::size_t i{}; i < m_children.size(); i++)
+		{
+			onChildUpdate(i);
+		}
+	}
+
 	void AppSidebarItem::draw()
 	{
 		ImGui::Unindent(ImGui::GetTreeNodeToLabelSpacing());
@@ -345,9 +391,27 @@ namespace RSE
 		if (ImGui::CollapsingHeader("Edit"))
 		{
 			ImGui::Spacing();
-			if (ImGui::Button("Dense"))
+			int dim{ static_cast<int>(editDim) };
+			ImGui::RadioButton("x", &dim, 0);
+			ImGui::SameLine();
+			ImGui::RadioButton("y", &dim, 1);
+			ImGui::SameLine();
+			ImGui::RadioButton("z", &dim, 2);
+			editDim = static_cast<hexUtils::EDim>(dim);
+			ImGui::Spacing();
+			if (ImGui::SmallButton("Flip"))
 			{
-				dense();
+				flip();
+			}
+			ImGui::SameLine();
+			if (ImGui::SmallButton("Mirror"))
+			{
+				mirror();
+			}
+			ImGui::SameLine();
+			if (ImGui::SmallButton("Rotate"))
+			{
+				rotate();
 			}
 		}
 		// children
@@ -440,6 +504,11 @@ namespace RSE
 				addChild();
 			}
 			ImGui::SameLine();
+			if (ImGui::Button("Dense"))
+			{
+				dense();
+			}
+			ImGui::SameLine();
 			bool singleMode{ m_singleMode };
 			if (ImGui::Checkbox("Single mode", &singleMode))
 			{
@@ -457,10 +526,7 @@ namespace RSE
 			}
 			if (m_hasAnySolo != hadAnySolo)
 			{
-				for (std::size_t i{}; i < m_children.size(); i++)
-				{
-					onChildUpdate(i);
-				}
+				updateAllChildren();
 			}
 		}
 		// command bar

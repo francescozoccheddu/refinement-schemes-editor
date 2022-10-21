@@ -6,7 +6,7 @@
 namespace RSE
 {
 
-	SourceControl::SourceControl() 
+	SourceControl::SourceControl()
 		: m_size{ 3 }, m_displacementControl{ RHexControl::cubeVerts(RVec3{-c_maxExtent,-c_maxExtent, -c_maxExtent}, RVec3{c_maxExtent,c_maxExtent, c_maxExtent}) }, m_clipMin{ 0,0,0 }, m_clipMax{ m_size, m_size, m_size }
 	{}
 
@@ -72,9 +72,16 @@ namespace RSE
 			displUpdated = true;
 		}
 		ImGui::Spacing();
-		if (m_displacementControl.draw(false, -c_maxExtent, c_maxExtent))
+		if (ImGui::TreeNode("Displacement"))
 		{
-			displUpdated = true;
+			ImGui::Spacing();
+			ImGui::Unindent(ImGui::GetTreeNodeToLabelSpacing());
+			if (m_displacementControl.draw(false, -c_maxExtent, c_maxExtent))
+			{
+				displUpdated = true;
+			}
+			ImGui::Indent(ImGui::GetTreeNodeToLabelSpacing());
+			ImGui::TreePop();
 		}
 		const auto dragInt3{ [this, speed](IVec3& _vec, const char* _label) {
 			Vec3<int> ivec { _vec.cast<int>() };

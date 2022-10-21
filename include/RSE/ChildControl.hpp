@@ -34,6 +34,8 @@ namespace RSE
 			SomeSolo, Default, Hidden
 		};
 
+		ChildControl(const HexVertsU& _verts);
+
 		ChildControl(const IVec3& _min, const IVec3& _max);
 
 		Style& style();

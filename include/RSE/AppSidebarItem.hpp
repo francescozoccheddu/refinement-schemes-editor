@@ -2,6 +2,7 @@
 
 #include <cinolib/gl/side_bar_item.h>
 #include <RSE/types.hpp>
+#include <RSE/hexUtils.hpp>
 #include <RSE/ChildControl.hpp>
 #include <RSE/HexControl.hpp>
 #include <RSE/SourceControl.hpp>
@@ -35,8 +36,14 @@ namespace RSE
 
 		Int minRequiredSize() const;
 		void doUpdateColors();
+		void updateAllChildren();
+
+		void addChild(const IVec3& _min, const IVec3& _max);
+		void addChild(const HexVertsU& _verts);
 
 	public:
+
+		hexUtils::EDim editDim;
 
 		AppSidebarItem();
 
@@ -54,7 +61,11 @@ namespace RSE
 
 		void dense();
 
-		void addChild(const IVec3& _min, const IVec3& _max);
+		void flip();
+
+		void mirror();
+
+		void rotate();
 
 		void addChild();
 
