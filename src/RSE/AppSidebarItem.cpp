@@ -354,7 +354,7 @@ namespace RSE
 			{
 				a.y() = y;
 				b.y() = y + 1;
-				for (Int z{ min.y() }; z < max.z(); z++)
+				for (Int z{ min.z() }; z < max.z(); z++)
 				{
 					a.z() = z;
 					b.z() = z + 1;
