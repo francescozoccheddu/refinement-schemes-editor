@@ -3,7 +3,7 @@
 ### Compatibility
 
 Requires [CMake](https://cmake.org/) 3.8+, a modern C++20 compiler and OpenGL 1.1 support.
-Tested on MSVC v143 on Windows 11 and g++ 12.2 on Ubuntu 22.10.
+Tested on MSVC v143 on Windows 11 and g++ 10.3, g++ 12.2, Clang 14 and Clang 15 on Ubuntu 22.10.
 
 ## Setup
 
