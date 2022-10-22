@@ -114,6 +114,8 @@ namespace RSE
 
 		void cubeActive();
 
+		void randomColors();
+
 		void setCursor(const IVec3& _min, const IVec3& _max);
 
 		std::optional<std::size_t> activeChildIndex() const;

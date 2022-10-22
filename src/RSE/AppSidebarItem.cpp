@@ -98,6 +98,7 @@ namespace RSE
 		while (childrenSize > 0)
 		{
 			ChildControl& child{ *new ChildControl{m_sourceControl.cursorMin(), m_sourceControl.cursorMax()} };
+			child.randomColor();
 			m_children.push_back(&child);
 			HexVertsU verts;
 			for (IVec3& vert : verts)
@@ -776,6 +777,11 @@ namespace RSE
 			{
 				setSolidMode(solidMode);
 			}
+			ImGui::Spacing();
+			if (ImGui::SmallButton("Random colors"))
+			{
+				randomColors();
+			}
 		}
 		// command bar
 		ImGui::Spacing();
@@ -814,6 +820,15 @@ namespace RSE
 			exportCodeToClipboard();
 		}
 		ImGui::Spacing();
+	}
+
+	void AppSidebarItem::randomColors()
+	{
+		for (std::size_t i{}; i < m_children.size(); i++)
+		{
+			m_children[i]->randomColor();
+			onChildUpdate(i);
+		}
 	}
 
 }
