@@ -391,6 +391,26 @@ namespace RSE
 		return false;
 	}
 
+	void App::onClick(int _modifiers)
+	{
+		if (_modifiers == GLFW_MOD_CONTROL)
+		{
+			onSetVert();
+		}
+		else if (_modifiers == GLFW_MOD_SHIFT)
+		{
+			if (m_appWidget.activeChildIndex())
+			{
+				const HexVertsU& verts{ m_appWidget.activeChild().hexControl().verts() };
+				const auto it{ std::find(verts.begin(), verts.end(), m_grid.coord(m_mouseGridIndex)) };
+				if (it != verts.end())
+				{
+					m_appWidget.setActiveVert(it - verts.begin());
+				}
+			}
+		}
+	}
+
 	void App::setWindowTitle()
 	{
 		const std::string appName{ "RSE" };
@@ -457,12 +477,9 @@ namespace RSE
 		m_canvas.depth_cull_markers = false;
 		m_canvas.show_sidebar(true);
 		m_canvas.key_bindings.pan_with_arrow_keys = false;
+		m_canvas.callback_mouse_left_click = [this](int _modifiers) { onClick(_modifiers); return true; };
 		m_canvas.callback_key_pressed = [this](int _key, int _modifiers) { return onKeyPress(_key, _modifiers); };
-		m_canvas.callback_mouse_moved = [this](double _x, double _y)
-		{
-			onMouseMove();
-			return false;
-		};
+		m_canvas.callback_mouse_moved = [this](double _x, double _y) { onMouseMove(); return false; };
 		setWindowTitle();
 	}
 
