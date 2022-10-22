@@ -132,6 +132,8 @@ namespace RSE
 
 		ChildControls children() const;
 
+		void hideActive();
+
 		void draw() override final;
 
 	};

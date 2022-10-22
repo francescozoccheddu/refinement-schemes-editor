@@ -831,4 +831,17 @@ namespace RSE
 		}
 	}
 
+	void AppSidebarItem::hideActive()
+	{
+		if (m_activeChild)
+		{
+			if (!m_singleMode)
+			{
+				m_children[*m_activeChild]->setVisible(false);
+			}
+			setActiveChild(std::nullopt);
+		}
+	}
+
+
 }

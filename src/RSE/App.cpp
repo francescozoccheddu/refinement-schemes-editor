@@ -375,6 +375,9 @@ namespace RSE
 				case GLFW_KEY_D:
 					m_appWidget.cloneShown();
 					return true;
+				case GLFW_KEY_H:
+					m_appWidget.hideActive();
+					return true;
 				case GLFW_KEY_R:
 					m_appWidget.rotateShown();
 					return true;
@@ -434,7 +437,7 @@ namespace RSE
 			{
 				for (std::size_t i{}; i < m_appWidget.children().size(); i++)
 				{
-					if (pickActive(i))
+					if (m_appWidget.shown(m_appWidget.children()[i]) && pickActive(i))
 					{
 						break;
 					}
@@ -445,6 +448,23 @@ namespace RSE
 				if (m_appWidget.activeChildIndex())
 				{
 					pickActive(*m_appWidget.activeChildIndex());
+				}
+			}
+			else if (_modifiers == (GLFW_MOD_ALT | GLFW_MOD_SHIFT))
+			{
+				for (std::size_t i{ m_appWidget.activeChildIndex().value_or(-1) + 1 }; i < m_appWidget.children().size(); i++)
+				{
+					if (m_appWidget.shown(m_appWidget.children()[i]) && pickActive(i))
+					{
+						return;
+					}
+				}
+				for (std::size_t i{ 0 }; i < m_appWidget.activeChildIndex().value_or(0); i++)
+				{
+					if (m_appWidget.shown(m_appWidget.children()[i]) && pickActive(i))
+					{
+						return;
+					}
 				}
 			}
 		}
