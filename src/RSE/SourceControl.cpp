@@ -62,15 +62,25 @@ namespace RSE
 		{
 			throw std::logic_error{ "min size out of bounds" };
 		}
-		bool displUpdated{ false };
+		const Int oldSize{ m_size };
 		ImGui::Spacing();
 		const float speed{ (m_size - _minSize) / 100.0f };
 		if (ImGui::DragInt("Size", &m_size, 1.0f / 100.0f, _minSize, c_maxSize, "%d", ImGuiSliderFlags_AlwaysClamp))
 		{
 			m_clipMin = IVec3{ 0,0,0 };
 			m_clipMax = IVec3{ m_size, m_size, m_size };
-			displUpdated = true;
 		}
+		if (m_size * 2 <= c_maxSize)
+		{
+			ImGui::SameLine();
+			if (ImGui::SmallButton("Double"))
+			{
+				m_size *= 2;
+				m_clipMin *= 2;
+				m_clipMax *= 2;
+			}
+		}
+		bool displUpdated{ false };
 		ImGui::Spacing();
 		if (ImGui::TreeNode("Displacement"))
 		{
@@ -121,6 +131,10 @@ namespace RSE
 		if (displUpdated)
 		{
 			return EResult::Updated;
+		}
+		if (m_size != oldSize)
+		{
+			return (m_size == oldSize * 2) ? EResult::DoubledSize : EResult::Updated;
 		}
 		if (clipUpdated)
 		{

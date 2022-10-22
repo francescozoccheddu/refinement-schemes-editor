@@ -23,7 +23,7 @@ namespace RSE
 
 		enum class EResult
 		{
-			None, Updated, ClipUpdated
+			None, Updated, ClipUpdated, DoubledSize
 		};
 
 		SourceControl();

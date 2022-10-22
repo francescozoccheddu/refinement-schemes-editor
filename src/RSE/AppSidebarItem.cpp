@@ -416,6 +416,13 @@ namespace RSE
 			ImGui::Spacing();
 			switch (m_sourceControl.draw(minRequiredSize()))
 			{
+				case SourceControl::EResult::DoubledSize:
+					for (ChildControl* child : m_children)
+					{
+						HexVertsU verts{ child->hexControl().verts() };
+						hexUtils::scaleVerts(verts, IVec3{ 2,2,2 });
+						child->setVerts(verts);
+					}
 				case SourceControl::EResult::Updated:
 					onSourceUpdate();
 				case SourceControl::EResult::ClipUpdated:
