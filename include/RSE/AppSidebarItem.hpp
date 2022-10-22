@@ -32,6 +32,7 @@ namespace RSE
 		std::optional<std::size_t> m_activeChild;
 		bool m_hasAnySelected;
 		bool m_singleMode;
+		bool m_solidMode{ false };
 		std::optional<std::string> m_file{};
 
 		Int minRequiredSize() const;
@@ -57,6 +58,10 @@ namespace RSE
 		cpputils::collections::Event<AppSidebarItem, std::size_t> onChildUpdate;
 
 		void setHideCursor(bool _hidden);
+
+		void setSolidMode(bool _enabled);
+
+		bool solidMode() const;
 
 		const std::optional<std::string>& file() const;
 
@@ -123,8 +128,6 @@ namespace RSE
 		const SourceControl& source() const;
 
 		bool shown(const ChildControl& _child) const;
-
-		bool targeted(const ChildControl& _child) const;
 
 		ChildControls children() const;
 

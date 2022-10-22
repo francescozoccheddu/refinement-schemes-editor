@@ -162,6 +162,23 @@ namespace RSE
 		return exporter(children);
 	}
 
+	void AppSidebarItem::setSolidMode(bool _enabled)
+	{
+		if (m_solidMode != _enabled)
+		{
+			m_solidMode = _enabled;
+			for (std::size_t i{}; i < m_children.size(); i++)
+			{
+				onChildUpdate(i);
+			}
+		}
+	}
+
+	bool AppSidebarItem::solidMode() const
+	{
+		return m_solidMode;
+	}
+
 	void AppSidebarItem::exportCodeToClipboard() const
 	{
 		glfwSetClipboardString(nullptr, exportCode().c_str());
@@ -754,9 +771,15 @@ namespace RSE
 			}
 			ImGui::SameLine();
 			bool singleMode{ m_singleMode };
-			if (ImGui::Checkbox("Single mode", &singleMode))
+			if (ImGui::Checkbox("Single", &singleMode))
 			{
 				setSingleMode(singleMode);
+			}
+			ImGui::SameLine();
+			bool solidMode{ m_solidMode };
+			if (ImGui::Checkbox("Solid", &solidMode))
+			{
+				setSolidMode(singleMode);
 			}
 		}
 		// command bar

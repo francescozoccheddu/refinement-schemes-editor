@@ -89,7 +89,9 @@ namespace RSE
 			{
 				mesh.vert(static_cast<unsigned int>(i)) = verts[i];
 			}
-			mesh.poly_set_color(child.style().color(1.0f, 1.0f, 0.75f));
+			mesh.poly_set_color(child.style().color(1.0f, 1.0f, m_appWidget.solidMode() ? 1.0f : 0.75f));
+			mesh.show_in_wireframe(m_appWidget.solidMode());
+			mesh.show_out_wireframe(m_appWidget.solidMode());
 			mesh.update_normals();
 			mesh.updateGL();
 			mesh.update_normals();
@@ -113,9 +115,10 @@ namespace RSE
 	void App::onChildAdd()
 	{
 		cinolib::DrawableHexmesh<>& mesh{ *new cinolib::DrawableHexmesh<>{} };
+		mesh.poly_set_color(cinolib::Color::BLACK());
+		mesh.show_in_wireframe_width(2);
+		mesh.show_out_wireframe_width(2);
 		mesh.show_mesh_flat();
-		mesh.show_in_wireframe(false);
-		mesh.show_out_wireframe(false);
 		mesh.draw_back_faces = false;
 		for (const RVec3 vert : cubeVerts)
 		{
@@ -249,6 +252,9 @@ namespace RSE
 				case GLFW_KEY_A:
 					m_appWidget.addChild();
 					m_appWidget.setActiveChild(m_appWidget.children().size() - 1);
+					return true;
+				case GLFW_KEY_U:
+					m_appWidget.setSolidMode(!m_appWidget.solidMode());
 					return true;
 				case GLFW_KEY_X:
 					m_appWidget.editDim = hexUtils::EDim::X;
