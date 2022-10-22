@@ -69,15 +69,15 @@ namespace RSE
 		const FastVert ab = _dir;
 		const FastVert ap = _point - _origin;
 
-		if (ap.dot(ab) <= 0.0)
-			return -ap.norm();
+		if (ap.dot(ab) <= FastValue{ 0 })
+			return static_cast<FastValue>(- ap.norm());
 
 		const FastVert bp = _point - (_origin + _dir);
 
-		if (bp.dot(ab) >= 0.0)
-			return bp.norm();
+		if (bp.dot(ab) >= FastValue{ 0 })
+			return static_cast<FastValue>(bp.norm());
 
-		return (ab.cross(ap)).norm() / ab.norm();
+		return static_cast<FastValue>((ab.cross(ap)).norm() / ab.norm());
 	}
 
 	typename Grid::FastValue Grid::pointLineSqrDist(const FastVert& _origin, const FastVert& _normDir, const FastVert& _point, bool& _behind)
