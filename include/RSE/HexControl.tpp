@@ -109,9 +109,9 @@ namespace RSE::internal
 	std::optional<HexControl<TInt>> HexControl<TInt>::paste()
 	{
 		std::optional<Verts> verts{ pasteVerts() };
-		if (verts.has_value())
+		if (verts)
 		{
-			return HexControl{ verts.value() };
+			return HexControl{ *verts };
 		}
 		return std::nullopt;
 	}
@@ -208,12 +208,12 @@ namespace RSE::internal
 		{
 			_copiedVerts = m_verts;
 		}
-		if (_copiedVerts.has_value())
+		if (_copiedVerts)
 		{
 			ImGui::SameLine();
 			if (ImGui::SmallButton("P"))
 			{
-				m_verts = _copiedVerts.value();
+				m_verts = *_copiedVerts;
 				updated = true;
 			}
 		}
@@ -228,8 +228,8 @@ namespace RSE::internal
 			// handle
 			const ImVec2 cursor{ ImGui::GetCursorPos() };
 			ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.2f);
-			bool selected{ false };
-			ImGui::Selectable("##handle", &selected, ImGuiSelectableFlags_AllowItemOverlap, lineSize);
+			bool targeted{ false };
+			ImGui::Selectable("##handle", &targeted, ImGuiSelectableFlags_AllowItemOverlap, lineSize);
 			const bool dragging{ ImGui::IsItemActive() };
 			if (dragging)
 			{
@@ -305,13 +305,13 @@ namespace RSE::internal
 			{
 				_copiedVert = vert;
 			}
-			if (_copiedVert.has_value())
+			if (_copiedVert)
 			{
 				ImGui::SameLine();
 				if (ImGui::SmallButton("P"))
 				{
-					updated = vert != _copiedVert.value();
-					vert = _copiedVert.value();
+					updated = vert != *_copiedVert;
+					vert = *_copiedVert;
 				}
 			}
 			ImGui::PopID();
@@ -329,13 +329,13 @@ namespace RSE::internal
 		std::optional<Verts> tempVerts{ _copiedVerts };
 		std::optional<Vert> tempVert{ _copiedVert };
 		const bool updated{ draw(_activeVertSel, _min, _max, tempVerts, tempVert) };
-		if (tempVert.has_value() && tempVert != _copiedVert)
+		if (tempVert && tempVert != _copiedVert)
 		{
-			copyVert(tempVert.value());
+			copyVert(*tempVert);
 		}
-		if (tempVerts.has_value() && tempVerts != _copiedVerts)
+		if (tempVerts && tempVerts != _copiedVerts)
 		{
-			copyVerts(tempVerts.value());
+			copyVerts(*tempVerts);
 		}
 		return updated;
 	}

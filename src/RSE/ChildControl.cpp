@@ -18,7 +18,7 @@ namespace RSE
 		}
 	}
 
-	ChildControl::ChildControl(const HexVertsU& _verts) : m_expanded{ false }, m_visible{ true }, m_solo{ false }, m_hexControl{ _verts, true }, m_style{ 0.0f,0.0f,0.5f }, m_maxSize{}
+	ChildControl::ChildControl(const HexVertsU& _verts) : m_active{ false }, m_visible{ true }, m_selected{ false }, m_hexControl{ _verts, true }, m_style{ 0.0f,0.0f,0.5f }, m_maxSize{}
 	{
 		for (const IVec3& vert : _verts)
 		{
@@ -50,14 +50,14 @@ namespace RSE
 		return m_visible;
 	}
 
-	bool ChildControl::solo() const
+	bool ChildControl::selected() const
 	{
-		return m_solo;
+		return m_selected;
 	}
 
-	bool ChildControl::expanded() const
+	bool ChildControl::active() const
 	{
-		return m_expanded;
+		return m_active;
 	}
 
 	void ChildControl::setVerts(const HexVertsU& _verts)
@@ -78,19 +78,19 @@ namespace RSE
 	}
 
 
-	void ChildControl::setExpanded(bool _expanded)
+	void ChildControl::setActive(bool _active)
 	{
-		m_expanded = _expanded;
+		m_active = _active;
 	}
 
-	void ChildControl::setSolo(bool _solo)
+	void ChildControl::setSelected(bool _selected)
 	{
-		m_visible |= m_solo = _solo;
+		m_visible |= m_selected = _selected;
 	}
 
 	void ChildControl::setVisible(bool _visible)
 	{
-		m_solo &= m_visible = _visible;
+		m_selected &= m_visible = _visible;
 	}
 
 	Int ChildControl::maxSize() const
@@ -107,33 +107,33 @@ namespace RSE
 		{
 			const ImGuiStyle& style{ ImGui::GetStyle() };
 			ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ style.ItemSpacing.x / 2, style.ItemSpacing.y });
-			ImGui::PushStyleVar(ImGuiStyleVar_Alpha, style.Alpha * (_visibilityMode == EVisibilityMode::SomeSolo && !m_solo) ? 0.5f : 1.0f);
+			ImGui::PushStyleVar(ImGuiStyleVar_Alpha, style.Alpha * (_visibilityMode == EVisibilityMode::SomeSelected && !m_selected) ? 0.5f : 1.0f);
 			ImGui::Checkbox("##visible", &m_visible);
-			m_solo &= m_visible;
+			m_selected &= m_visible;
 			ImGui::PopStyleVar();
 			ImGui::SameLine();
-			ImGui::Checkbox("##solo", &m_solo);
-			m_visible |= m_solo;
+			ImGui::Checkbox("##selected", &m_selected);
+			m_visible |= m_selected;
 			ImGui::PopStyleVar();
 			ImGui::SameLine();
 		}
 		// header
-		ImGui::SetNextItemOpen(m_expanded, ImGuiCond_Always);
+		ImGui::SetNextItemOpen(m_active, ImGuiCond_Always);
 		if (!m_hexControl.valid())
 		{
 			ImGui::PushStyleColor(ImGuiCol_Text, ImVec4{ 1.0f,1.0f,0.0f,1.0f });
 		}
 		bool keep{ true };
-		const bool wasExpanded{ m_expanded };
-		m_expanded = ImGui::CollapsingHeader("Verts", &keep);
+		const bool wasActive{ m_active };
+		m_active = ImGui::CollapsingHeader("Verts", &keep);
 		if (!m_hexControl.valid())
 		{
 			ImGui::PopStyleColor();
 		}
 		// vertices
-		if (m_expanded)
+		if (m_active)
 		{
-			if (!wasExpanded)
+			if (!wasActive)
 			{
 				m_hexControl.setActiveVert(0);
 			}

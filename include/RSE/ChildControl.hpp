@@ -14,8 +14,8 @@ namespace RSE
 	private:
 
 		bool m_visible;
-		bool m_solo;
-		bool m_expanded;
+		bool m_selected;
+		bool m_active;
 		IHexControl m_hexControl;
 		Int m_maxSize;
 		Style m_style;
@@ -31,7 +31,7 @@ namespace RSE
 
 		enum class EVisibilityMode
 		{
-			SomeSolo, Default, Hidden
+			SomeSelected, Default, Hidden
 		};
 
 		ChildControl(const HexVertsU& _verts);
@@ -48,13 +48,13 @@ namespace RSE
 
 		bool visible() const;
 
-		bool solo() const;
+		bool selected() const;
 
-		bool expanded() const;
+		bool active() const;
 
-		void setExpanded(bool _expanded);
+		void setActive(bool _active);
 
-		void setSolo(bool _solo);
+		void setSelected(bool _selected);
 		
 		void setVisible(bool _visible);
 

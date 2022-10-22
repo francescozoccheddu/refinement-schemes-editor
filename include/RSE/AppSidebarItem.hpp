@@ -30,13 +30,13 @@ namespace RSE
 		std::vector<ChildControl*> m_children;
 		SourceControl m_sourceControl;
 		std::optional<std::size_t> m_activeChild;
-		bool m_hasAnySolo;
+		bool m_hasAnySelected;
 		bool m_singleMode;
 		std::optional<std::string> m_file{};
 
 		Int minRequiredSize() const;
 		void doUpdateColors();
-		void updateAllChildren();
+		void updateSelection();
 
 		void addChild(const IVec3& _min, const IVec3& _max);
 		void addChild(const HexVertsU& _verts);
@@ -62,15 +62,29 @@ namespace RSE
 
 		void save(bool _new);
 
-		void dense();
+		void addChildrenClipGrid();
 
-		void flip();
+		void flipShown();
 
-		void mirror();
-
-		void rotate();
+		void rotateShown();
 
 		void addChild();
+
+		void cloneShown();
+
+		void removeShown();
+
+		void setChildSelected(std::size_t _child, bool _selected);
+
+		void setAllSelected(bool _selected);
+
+		void setActiveSelected(bool _selected);
+
+		void translateShown(bool _advance);
+
+		void translateClip(bool _advance);
+
+		void scaleClip(bool _advance);
 
 		void removeChild(std::size_t _child);
 
@@ -79,7 +93,9 @@ namespace RSE
 		void load();
 
 		std::string exportCode() const;
+
 		void exportCodeToFile() const;
+		
 		void exportCodeToClipboard() const;
 
 		void setActiveVert(std::size_t _vert);
@@ -104,7 +120,9 @@ namespace RSE
 
 		const SourceControl& source() const;
 
-		bool visible(const ChildControl& _child) const;
+		bool shown(const ChildControl& _child) const;
+
+		bool targeted(const ChildControl& _child) const;
 
 		ChildControls children() const;
 

@@ -72,10 +72,10 @@ namespace RSE
 	{
 		const ChildControl& child{ m_appWidget.children()[_child] };
 		const bool valid{ child.hexControl().valid() && m_appWidget.source().displ().valid() };
-		const bool visible{ m_appWidget.visible(child) };
+		const bool shown{ m_appWidget.shown(child) };
 		const HexVerts verts{ m_grid.points(child.hexControl().verts()) };
 		cinolib::DrawableHexmesh<>& mesh{ *m_childMeshes[_child] };
-		if (valid && visible)
+		if (valid && shown)
 		{
 			for (std::size_t i{}; i < 8; i++)
 			{
@@ -87,7 +87,7 @@ namespace RSE
 			mesh.update_normals();
 			mesh.updateGL();
 		}
-		mesh.show_mesh(valid && visible);
+		mesh.show_mesh(valid && shown);
 		const HexVertData<std::size_t> firstOccurrencies{ child.hexControl().firstOccurrenceIndices() };
 		for (std::size_t i{}; i < 8; i++)
 		{
@@ -95,8 +95,8 @@ namespace RSE
 			const bool duplicate{ firstOccurrencies[i] != i };
 			marker.pos_3d = verts[i];
 			marker.color = duplicate ? cinolib::Color::YELLOW() : child.style().color(0.25f);
-			marker.disk_radius = visible ? 5 : 0;
-			marker.font_size = visible && child.expanded() ? 20 : 0;
+			marker.disk_radius = shown ? 5 : 0;
+			marker.font_size = shown && child.active() ? 20 : 0;
 		}
 	}
 
@@ -151,7 +151,7 @@ namespace RSE
 
 	void App::onSetVert()
 	{
-		if (m_appWidget.activeChildIndex().has_value())
+		if (m_appWidget.activeChildIndex())
 		{
 			m_appWidget.setActiveVert(m_grid.coord(m_mouseGridIndex));
 		}
@@ -159,7 +159,7 @@ namespace RSE
 
 	void App::onActiveVertChange()
 	{
-		if (m_appWidget.activeChildIndex().has_value())
+		if (m_appWidget.activeChildIndex())
 		{
 			const ChildControl child{ m_appWidget.activeChild() };
 			m_canvas.markers[1].pos_3d = m_grid.point(child.hexControl().verts()[child.hexControl().activeVert()]);
@@ -174,7 +174,7 @@ namespace RSE
 
 	void App::onAdvanceActiveChild(bool _advance)
 	{
-		if (!m_appWidget.activeChildIndex().has_value())
+		if (!m_appWidget.activeChildIndex())
 		{
 			if (!m_appWidget.children().empty())
 			{
@@ -195,11 +195,11 @@ namespace RSE
 
 	void App::onSetActiveVert(std::size_t _vert)
 	{
-		if (!m_appWidget.activeChildIndex().has_value())
+		if (!m_appWidget.activeChildIndex())
 		{
 			onAdvanceActiveChild(true);
 		}
-		if (m_appWidget.activeChildIndex().has_value())
+		if (m_appWidget.activeChildIndex())
 		{
 			m_appWidget.setActiveVert(_vert);
 		}
@@ -207,13 +207,13 @@ namespace RSE
 
 	void App::onAdvanceActiveVert(bool _advance)
 	{
-		if (!m_appWidget.activeChildIndex().has_value())
+		if (!m_appWidget.activeChildIndex())
 		{
 			onAdvanceActiveChild(true);
 		}
-		if (m_appWidget.activeChildIndex().has_value())
+		if (m_appWidget.activeChildIndex())
 		{
-			std::size_t index{ m_appWidget.activeVertIndex().value() + 1 + (_advance ? 1 : -1) };
+			std::size_t index{ *m_appWidget.activeVertIndex() + 1 + (_advance ? 1 : -1) };
 			if (index == 0)
 			{
 				index = 8;
@@ -241,9 +241,6 @@ namespace RSE
 				case GLFW_KEY_A:
 					m_appWidget.addChild();
 					m_appWidget.setActiveChild(m_appWidget.children().size() - 1);
-					return true;
-				case GLFW_KEY_W:
-					onSetVert();
 					return true;
 				case GLFW_KEY_X:
 					m_appWidget.editDim = hexUtils::EDim::X;
@@ -301,26 +298,16 @@ namespace RSE
 				case GLFW_KEY_S:
 					m_appWidget.setSingleMode(!m_appWidget.singleMode());
 					return true;
-			}
-			if (m_appWidget.activeChildIndex().has_value())
-			{
-				const std::size_t child{ m_appWidget.activeChildIndex().value() };
-				switch (_key)
-				{
-					case GLFW_KEY_E:
-						onSetVert();
-						onAdvanceActiveVert(true);
-						return true;
-					case GLFW_KEY_Q:
-						m_appWidget.cubeActive();
-						return true;
-					case GLFW_KEY_P:
-						m_appWidget.dense();
-						return true;
-					case GLFW_KEY_DELETE:
-						m_appWidget.removeChild(child);
-						return true;
-				}
+				case GLFW_KEY_E:
+					onSetVert();
+					onAdvanceActiveVert(true);
+					return true;
+				case GLFW_KEY_W:
+					onSetVert();
+					return true;
+				case GLFW_KEY_Q:
+					m_appWidget.cubeActive();
+					return true;
 			}
 		}
 		else if (_modifiers == GLFW_MOD_SHIFT)
@@ -328,90 +315,77 @@ namespace RSE
 			switch (_key)
 			{
 				case GLFW_KEY_A:
-					m_appWidget.dense();
+					m_appWidget.addChildrenClipGrid();
+					return true;
+			}
+		}
+		else if (_modifiers == GLFW_MOD_ALT)
+		{
+			switch (_key)
+			{
+				case GLFW_KEY_LEFT:
+					m_appWidget.scaleClip(false);
+					return true;
+				case GLFW_KEY_RIGHT:
+					m_appWidget.scaleClip(true);
 					return true;
 				case GLFW_KEY_DOWN:
+					m_appWidget.translateClip(false);
+					return true;
 				case GLFW_KEY_UP:
-				{
-					const unsigned int dim{ static_cast<unsigned int>(m_appWidget.editDim) };
-					const Int size{ m_appWidget.source().size() };
-					IVec3 min{ m_appWidget.source().clipMin() };
-					IVec3 max{ m_appWidget.source().clipMax() };
-					Int& mind{ min[dim] }, & maxd{ max[dim] };
-					const bool increase{ _key == GLFW_KEY_UP };
-					if (mind > size - maxd)
-					{
-						if (increase)
-						{
-							mind = std::max(0, mind - 1);
-						}
-						else
-						{
-							maxd = std::max(mind, maxd - 1);
-						}
-					}
-					else
-					{
-						if (increase)
-						{
-							maxd = std::min(size, maxd + 1);
-						}
-						else
-						{
-							mind = std::min(maxd, mind + 1);
-						}
-					}
-					m_appWidget.setClip(min, max);
-				}
-				return true;
-
+					m_appWidget.translateClip(true);
+					return false;
 			}
 		}
 		else if (_modifiers == GLFW_MOD_CONTROL)
 		{
 			switch (_key)
 			{
-				case GLFW_KEY_S:
-					m_appWidget.save(false);
-					break;
-				case GLFW_KEY_O:
-					m_appWidget.load();
-					break;
+				case GLFW_KEY_DELETE:
+					m_appWidget.removeShown();
 					return true;
 				case GLFW_KEY_DOWN:
+					m_appWidget.translateShown(false);
+					return true;
 				case GLFW_KEY_UP:
-				{
-					const unsigned int dim{ static_cast<unsigned int>(m_appWidget.editDim) };
-					const Int size{ m_appWidget.source().size() };
-					IVec3 min{ m_appWidget.source().clipMin() };
-					IVec3 max{ m_appWidget.source().clipMax() };
-					Int& mind{ min[dim] }, & maxd{ max[dim] };
-					const bool increase{ _key == GLFW_KEY_UP };
-					if ((increase && maxd < size) || (!increase && mind > 0))
-					{
-						if (increase)
-						{
-							mind++;
-							maxd++;
-						}
-						else
-						{
-							mind--;
-							maxd--;
-						}
-						m_appWidget.setClip(min, max);
-					}
-				}
-				return true;
+					m_appWidget.translateShown(true);
+					return true;
+				case GLFW_KEY_Q:
+					m_appWidget.setActiveSelected(true);
+					return true;
+				case GLFW_KEY_D:
+					m_appWidget.cloneShown();
+					return true;
+				case GLFW_KEY_R:
+					m_appWidget.rotateShown();
+					return true;
+				case GLFW_KEY_F:
+					m_appWidget.flipShown();
+					return true;
+				case GLFW_KEY_A:
+					m_appWidget.setAllSelected(true);
+					return true;
+				case GLFW_KEY_S:
+					m_appWidget.save(false);
+					return true;
+				case GLFW_KEY_O:
+					m_appWidget.load();
+					return true;
 			}
 		}
 		else if (_modifiers == (GLFW_MOD_CONTROL | GLFW_MOD_SHIFT))
 		{
 			switch (_key)
 			{
+				case GLFW_KEY_A:
+					m_appWidget.setAllSelected(false);
+					return true;
+				case GLFW_KEY_Q:
+					m_appWidget.setActiveSelected(false);
+					return true;
 				case GLFW_KEY_S:
 					m_appWidget.save(true);
-					break;
+					return true;
 			}
 		}
 		return false;
@@ -421,7 +395,7 @@ namespace RSE
 	{
 		const std::string appName{ "RSE" };
 		static constexpr std::size_t maxFileNameSize{ 20 };
-		std::string fileName{ m_appWidget.file().value_or("")};
+		std::string fileName{ m_appWidget.file().value_or("") };
 		if (fileName.size() > maxFileNameSize)
 		{
 			fileName = "..." + fileName.substr(fileName.size() - maxFileNameSize);

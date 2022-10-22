@@ -19,7 +19,7 @@
 namespace RSE
 {
 
-	AppSidebarItem::AppSidebarItem() : cinolib::SideBarItem{ "App" }, m_children{}, m_sourceControl{}, m_activeChild{}, onSourceUpdate{}, m_hasAnySolo{ false }, m_singleMode{ false }, m_file{}, editDim{hexUtils::EDim::X}
+	AppSidebarItem::AppSidebarItem() : cinolib::SideBarItem{ "App" }, m_children{}, m_sourceControl{}, m_activeChild{}, onSourceUpdate{}, m_hasAnySelected{ false }, m_singleMode{ false }, m_file{}, editDim{ hexUtils::EDim::X }
 	{
 	}
 
@@ -38,7 +38,7 @@ namespace RSE
 
 	void AppSidebarItem::save(bool _new)
 	{
-		const std::string filename{ (_new || !m_file.has_value()) ? cinolib::file_dialog_save() : m_file.value_or("") };
+		const std::string filename{ (_new || !m_file) ? cinolib::file_dialog_save() : m_file.value_or("") };
 		if (!filename.empty())
 		{
 			m_file = filename;
@@ -66,7 +66,7 @@ namespace RSE
 
 	void AppSidebarItem::clear()
 	{
-		if (m_activeChild.has_value())
+		if (m_activeChild)
 		{
 			m_activeChild = std::nullopt;
 			onActiveVertChange();
@@ -76,7 +76,7 @@ namespace RSE
 			delete child;
 		}
 		m_children.clear();
-		m_hasAnySolo = false;
+		m_hasAnySelected = false;
 		onChildrenClear();
 	}
 
@@ -136,9 +136,9 @@ namespace RSE
 		}
 		CppExporter exporter{};
 		exporter.name = "";
-		if (m_file.has_value())
+		if (m_file)
 		{
-			std::string project{ m_file.value() };
+			std::string project{ *m_file };
 			project = project.substr(project.find_last_of("/\\") + 1);
 			project = project.substr(0, project.find_last_of("."));
 			std::cout << project;
@@ -194,7 +194,7 @@ namespace RSE
 	void AppSidebarItem::addChild(const HexVertsU& _verts)
 	{
 		m_children.push_back(new ChildControl{ _verts });
-		m_children.back()->setExpanded(false);
+		m_children.back()->setActive(false);
 		onChildAdd();
 		doUpdateColors();
 	}
@@ -205,6 +205,7 @@ namespace RSE
 		{
 			throw std::logic_error{ "index out of bounds" };
 		}
+		setChildSelected(_child, false);
 		if (m_activeChild == _child)
 		{
 			m_activeChild = std::nullopt;
@@ -212,9 +213,9 @@ namespace RSE
 		}
 		delete m_children[_child];
 		m_children.erase(m_children.begin() + _child);
-		if (m_activeChild.has_value() && m_activeChild.value() > _child)
+		if (m_activeChild > _child)
 		{
-			m_activeChild = m_activeChild.value() - 1;
+			m_activeChild = *m_activeChild - 1;
 		}
 		onChildRemove(_child);
 		doUpdateColors();
@@ -222,24 +223,22 @@ namespace RSE
 
 	void AppSidebarItem::setActiveVert(std::size_t _vert)
 	{
-		if (!m_activeChild.has_value())
+		if (m_activeChild)
 		{
-			throw std::logic_error{ "no active child" };
+			m_children[*m_activeChild]->setActiveVert(_vert);
+			onActiveVertChange();
 		}
-		m_children[m_activeChild.value()]->setActiveVert(_vert);
-		onActiveVertChange();
 	}
 
 	void AppSidebarItem::setActiveVert(const IVec3& _vert)
 	{
-		if (!m_activeChild.has_value())
+		if (m_activeChild)
 		{
-			throw std::logic_error{ "no active child" };
+			m_children[*m_activeChild]->setActiveVert(_vert);
+			m_sourceControl.setSize(std::max(m_sourceControl.size(), m_children[*m_activeChild]->maxSize()));
+			onChildUpdate(*m_activeChild);
+			onActiveVertChange();
 		}
-		m_children[m_activeChild.value()]->setActiveVert(_vert);
-		m_sourceControl.setSize(std::max(m_sourceControl.size(), m_children[m_activeChild.value()]->maxSize()));
-		onChildUpdate(m_activeChild.value());
-		onActiveVertChange();
 	}
 
 	std::optional<std::size_t> AppSidebarItem::activeChildIndex() const
@@ -249,12 +248,12 @@ namespace RSE
 
 	const ChildControl& AppSidebarItem::activeChild() const
 	{
-		return *m_children[m_activeChild.value()];
+		return *m_children[*m_activeChild];
 	}
 
 	std::optional<std::size_t> AppSidebarItem::activeVertIndex() const
 	{
-		return m_activeChild.has_value() ? std::optional{ activeChild().hexControl().activeVert() } : std::nullopt;
+		return m_activeChild ? std::optional{ activeChild().hexControl().activeVert() } : std::nullopt;
 	}
 
 	void AppSidebarItem::setActiveChild(std::optional<std::size_t> _child)
@@ -263,20 +262,20 @@ namespace RSE
 		{
 			const std::optional<std::size_t> old{ m_activeChild };
 			m_activeChild = _child;
-			if (old.has_value())
+			if (old)
 			{
-				m_children[old.value()]->setExpanded(false);
-				onChildUpdate(old.value());
+				m_children[*old]->setActive(false);
+				onChildUpdate(*old);
 			}
-			if (_child.has_value())
+			if (_child)
 			{
-				if (_child.value() >= m_children.size())
+				if (*_child >= m_children.size())
 				{
 					throw std::logic_error{ "index out of bounds" };
 				}
 				m_activeChild = _child;
-				m_children[_child.value()]->setExpanded(true);
-				onChildUpdate(_child.value());
+				m_children[*_child]->setActive(true);
+				onChildUpdate(*_child);
 			}
 			onActiveVertChange();
 		}
@@ -297,15 +296,13 @@ namespace RSE
 		for (std::size_t i{}; i < m_children.size(); i++)
 		{
 			m_children[i]->style() = Style{ (i / static_cast<float>(m_children.size())) * 360.0f };
+			onChildUpdate(i);
 		}
-		updateAllChildren();
 	}
 
-	bool AppSidebarItem::visible(const ChildControl& _child) const
+	bool AppSidebarItem::shown(const ChildControl& _child) const
 	{
-		return m_singleMode
-			? m_activeChild.has_value() && m_children[m_activeChild.value()] == &_child
-			: (_child.visible() && (!m_hasAnySolo || _child.solo()));
+		return _child.active() || (_child.visible() && (!m_hasAnySelected || _child.selected()));
 	}
 
 	bool AppSidebarItem::singleMode() const
@@ -318,24 +315,24 @@ namespace RSE
 		if (_enabled != m_singleMode)
 		{
 			m_singleMode = _enabled;
-			for (ChildControl* child : m_children)
+			m_hasAnySelected = false;
+			for (std::size_t i{}; i < m_children.size(); i++)
 			{
-				child->setVisible(true);
-				child->setSolo(false);
+				m_children[i]->setVisible(true);
+				m_children[i]->setSelected(false);
+				onChildUpdate(i);
 			}
-			updateAllChildren();
 		}
 	}
 
-
 	void AppSidebarItem::cubeActive()
 	{
-		if (m_activeChild.has_value())
+		if (m_activeChild)
 		{
-			ChildControl& child{ *m_children[m_activeChild.value()] };
+			ChildControl& child{ *m_children[*m_activeChild] };
 			const IVec3 oldActiveVert{ child.hexControl().verts()[child.hexControl().activeVert()] };
 			child.setVerts(hexUtils::cubeVerts(m_sourceControl.clipMin(), m_sourceControl.clipMax()));
-			onChildUpdate(m_activeChild.value());
+			onChildUpdate(*m_activeChild);
 			if (child.hexControl().verts()[child.hexControl().activeVert()] != oldActiveVert)
 			{
 				onActiveVertChange();
@@ -353,7 +350,7 @@ namespace RSE
 		}
 	}
 
-	void AppSidebarItem::dense()
+	void AppSidebarItem::addChildrenClipGrid()
 	{
 		const IVec3 min{ m_sourceControl.clipMin() };
 		const IVec3 max{ m_sourceControl.clipMax() };
@@ -376,44 +373,199 @@ namespace RSE
 		}
 	}
 
-	void AppSidebarItem::flip()
+	void AppSidebarItem::flipShown()
 	{
-		for (ChildControl* child : m_children)
+		for (std::size_t i{}; i < m_children.size(); i++)
 		{
-			HexVertsU verts{ child->hexControl().verts() };
-			hexUtils::flipVerts(verts, editDim, m_sourceControl.size());
-			child->setVerts(verts);
+			ChildControl& child{ *m_children[i] };
+			if (shown(child))
+			{
+				HexVertsU verts{ child.hexControl().verts() };
+				hexUtils::flipVerts(verts, editDim, m_sourceControl.size());
+				child.setVerts(verts);
+				onChildUpdate(i);
+			}
 		}
-		updateAllChildren();
 	}
 
-	void AppSidebarItem::mirror()
+	void AppSidebarItem::cloneShown()
 	{
 		const std::size_t maxI{ m_children.size() };
 		for (std::size_t i{}; i < maxI; i++)
 		{
-			HexVertsU verts{ m_children[i]->hexControl().verts() };
-			hexUtils::flipVerts(verts, editDim, m_sourceControl.size());
-			addChild(verts);
+			ChildControl& child{ *m_children[i] };
+			if (shown(child))
+			{
+				addChild(child.hexControl().verts());
+			}
 		}
 	}
 
-	void AppSidebarItem::rotate()
+	void AppSidebarItem::translateClip(bool _advance)
 	{
-		for (ChildControl* child : m_children)
+		const unsigned int dim{ static_cast<unsigned int>(editDim) };
+		const Int size{ source().size() };
+		IVec3 min{ source().clipMin() };
+		IVec3 max{ source().clipMax() };
+		Int& mind{ min[dim] }, & maxd{ max[dim] };
+		if ((_advance && maxd < size) || (!_advance && mind > 0))
 		{
-			HexVertsU verts{ child->hexControl().verts() };
-			hexUtils::rotateVerts(verts, editDim, m_sourceControl.size());
-			child->setVerts(verts);
+			if (_advance)
+			{
+				mind++;
+				maxd++;
+			}
+			else
+			{
+				mind--;
+				maxd--;
+			}
 		}
-		updateAllChildren();
+		setClip(min, max);
 	}
 
-	void AppSidebarItem::updateAllChildren()
+	void AppSidebarItem::scaleClip(bool _advance)
+	{
+		const unsigned int dim{ static_cast<unsigned int>(editDim) };
+		const Int size{ source().size() };
+		IVec3 min{ source().clipMin() };
+		IVec3 max{ source().clipMax() };
+		Int& mind{ min[dim] }, & maxd{ max[dim] };
+		if (mind > size - maxd)
+		{
+			if (_advance)
+			{
+				mind = std::max(0, mind - 1);
+			}
+			else
+			{
+				maxd = std::max(mind, maxd - 1);
+			}
+		}
+		else
+		{
+			if (_advance)
+			{
+				maxd = std::min(size, maxd + 1);
+			}
+			else
+			{
+				mind = std::min(maxd, mind + 1);
+			}
+		}
+		setClip(min, max);
+	}
+
+	void AppSidebarItem::translateShown(bool _advance)
+	{
+		const unsigned int dim{ static_cast<unsigned int>(editDim) };
+		for (std::size_t i{}; i < m_children.size(); i++)
+		{
+			ChildControl& child{ *m_children[i] };
+			if (shown(child))
+			{
+				for (const IVec3& vert : child.hexControl().verts())
+				{
+					if ((_advance && vert[dim] >= source().size()) || (!_advance && vert[dim] <= 0))
+					{
+						return;
+					}
+				}
+			}
+		}
+		IVec3 offset{0,0,0};
+		offset[dim] = _advance ? 1 : static_cast<Int>(-1);
+		for (std::size_t i{}; i < m_children.size(); i++)
+		{
+			ChildControl& child{ *m_children[i] };
+			if (shown(child))
+			{
+				HexVertsU verts{ child.hexControl().verts() };
+				hexUtils::translateVerts(verts, offset);
+				child.setVerts(verts);
+				onChildUpdate(i);
+			}
+		}
+	}
+
+	void AppSidebarItem::removeShown()
+	{
+		for (std::size_t iPlusOne{ m_children.size() }; iPlusOne > 0; iPlusOne--)
+		{
+			if (shown(*m_children[iPlusOne - 1]))
+			{
+				removeChild(iPlusOne - 1);
+			}
+		}
+	}
+
+	void AppSidebarItem::rotateShown()
 	{
 		for (std::size_t i{}; i < m_children.size(); i++)
 		{
-			onChildUpdate(i);
+			ChildControl& child{ *m_children[i] };
+			if (shown(child))
+			{
+				HexVertsU verts{ child.hexControl().verts() };
+				hexUtils::rotateVerts(verts, editDim, m_sourceControl.size());
+				child.setVerts(verts);
+				onChildUpdate(i);
+			}
+		}
+	}
+
+	void AppSidebarItem::setChildSelected(std::size_t _child, bool _selected)
+	{
+		if (!m_singleMode)
+		{
+			ChildControl& child{ *m_children[_child] };
+			if (child.selected() != _selected)
+			{
+				const bool wasShown{ shown(child) };
+				m_children[_child]->setSelected(_selected);
+				updateSelection();
+				if (wasShown != shown(child))
+				{
+					onChildUpdate(_child);
+				}
+			}
+		}
+	}
+
+	void AppSidebarItem::setAllSelected(bool _selected)
+	{
+		for (std::size_t i{}; i < m_children.size(); i++)
+		{
+			setChildSelected(i, _selected);
+		}
+	}
+
+	void AppSidebarItem::setActiveSelected(bool _selected)
+	{
+		if (m_activeChild)
+		{
+			setChildSelected(*m_activeChild, _selected);
+		}
+	}
+
+	void AppSidebarItem::updateSelection()
+	{
+		const bool hadAnySelected{ m_hasAnySelected };
+		m_hasAnySelected = false;
+		for (const ChildControl* child : m_children)
+		{
+			if (child->selected())
+			{
+				m_hasAnySelected = true;
+				break;
+			}
+		}
+		if (m_hasAnySelected != hadAnySelected)
+		{
+			for (std::size_t i{}; i < m_children.size(); i++)
+			{
+				onChildUpdate(i);
+			}
 		}
 	}
 
@@ -445,7 +597,7 @@ namespace RSE
 		// edit
 		ImGui::Spacing();
 		ImGui::SetNextItemOpen(false, ImGuiCond_Once);
-		if (ImGui::CollapsingHeader("Edit"))
+		if (ImGui::CollapsingHeader("Edit shown"))
 		{
 			ImGui::Spacing();
 			int dim{ static_cast<int>(editDim) };
@@ -456,19 +608,47 @@ namespace RSE
 			ImGui::RadioButton("z", &dim, 2);
 			editDim = static_cast<hexUtils::EDim>(dim);
 			ImGui::Spacing();
-			if (ImGui::SmallButton("Flip"))
+			if (ImGui::SmallButton("Clone"))
 			{
-				flip();
+				cloneShown();
 			}
 			ImGui::SameLine();
-			if (ImGui::SmallButton("Mirror"))
+			if (ImGui::SmallButton("Remove"))
 			{
-				mirror();
+				removeShown();
+			}
+			ImGui::SameLine();
+			if (ImGui::SmallButton("Flip"))
+			{
+				flipShown();
 			}
 			ImGui::SameLine();
 			if (ImGui::SmallButton("Rotate"))
 			{
-				rotate();
+				rotateShown();
+			}
+			ImGui::SameLine();
+			if (ImGui::SmallButton("Trans-"))
+			{
+				translateShown(false);
+			}
+			ImGui::SameLine();
+			if (ImGui::SmallButton("Trans+"))
+			{
+				translateShown(true);
+			}
+			if (!m_singleMode)
+			{
+				ImGui::Spacing();
+				if (ImGui::SmallButton("Select all"))
+				{
+					setAllSelected(true);
+				}
+				ImGui::SameLine();
+				if (ImGui::SmallButton("Deselect all"))
+				{
+					setAllSelected(false);
+				}
 			}
 		}
 		// children
@@ -498,41 +678,39 @@ namespace RSE
 			std::optional<HexVertsU> copiedVerts{ IHexControl::pasteVerts() };
 			std::optional<IVec3> copiedVert{ IHexControl::pasteVert() };
 			const std::optional<std::size_t> oldActiveVert{ activeVertIndex() }, oldActiveChild{ activeChildIndex() };
-			const IVec3 oldActiveVertValue{ m_activeChild.has_value() ? activeChild().hexControl().verts()[activeVertIndex().value()] : IVec3{0,0,0} };
+			const IVec3 oldActiveVertValue{ m_activeChild ? activeChild().hexControl().verts()[*activeVertIndex()] : IVec3{0,0,0} };
 			for (std::size_t i{}; i < m_children.size(); i++)
 			{
 				ChildControl& child{ *m_children[i] };
 				ImGui::PushID(&child);
-				const bool wasVisible{ visible(child) };
-				const bool wasActive{ child.expanded() };
+				const bool wasShown{ shown(child) };
+				const bool wasActive{ child.active() };
+				const bool wasSelected{ child.selected() };
 				const ChildControl::EVisibilityMode mode{
 					m_singleMode
 					? ChildControl::EVisibilityMode::Hidden
-					: m_hasAnySolo
-						? ChildControl::EVisibilityMode::SomeSolo
+					: m_hasAnySelected
+						? ChildControl::EVisibilityMode::SomeSelected
 						: ChildControl::EVisibilityMode::Default
 				};
 				const ChildControl::EResult result{ child.draw(m_sourceControl.clipMin(), m_sourceControl.clipMax(), copiedVerts, copiedVert, mode) };
-				if (wasVisible != visible(child))
+				if (wasSelected != child.selected())
+				{
+					updateSelection();
+				}
+				if (wasActive != child.active())
+				{
+					setActiveChild(wasActive ? std::nullopt : std::optional{ i });
+				}
+				if (wasShown != shown(child))
 				{
 					onChildUpdate(i);
-				}
-				if (wasActive != child.expanded())
-				{
-					if (wasActive)
-					{
-						setActiveChild(std::nullopt);
-					}
-					else
-					{
-						setActiveChild(i);
-					}
 				}
 				switch (result)
 				{
 					case ChildControl::EResult::Updated:
 						onChildUpdate(i);
-						if (wasActive && child.expanded() && child.hexControl().verts()[activeVertIndex().value()] != oldActiveVertValue)
+						if (wasActive && child.active() && child.hexControl().verts()[*activeVertIndex()] != oldActiveVertValue)
 						{
 							onActiveVertChange();
 						}
@@ -563,7 +741,7 @@ namespace RSE
 			ImGui::SameLine();
 			if (ImGui::Button("Dense"))
 			{
-				dense();
+				addChildrenClipGrid();
 			}
 			ImGui::SameLine();
 			bool singleMode{ m_singleMode };
@@ -571,31 +749,17 @@ namespace RSE
 			{
 				setSingleMode(singleMode);
 			}
-			const bool hadAnySolo{ m_hasAnySolo };
-			m_hasAnySolo = false;
-			for (const ChildControl* child : m_children)
-			{
-				if (child->solo())
-				{
-					m_hasAnySolo = true;
-					break;
-				}
-			}
-			if (m_hasAnySolo != hadAnySolo)
-			{
-				updateAllChildren();
-			}
 		}
 		// command bar
 		ImGui::Spacing();
 		ImGui::Separator();
 		ImGui::Spacing();
-		if (m_file.has_value())
+		if (m_file)
 		{
-			ImGui::TextDisabled(m_file.value().c_str());
+			ImGui::TextDisabled(m_file->c_str());
 			ImGui::Spacing();
 		}
-		if (m_file.has_value())
+		if (m_file)
 		{
 			if (ImGui::Button("Save"))
 			{
