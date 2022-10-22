@@ -74,6 +74,8 @@ namespace RSE
 
 		void removeChild(std::size_t _child);
 
+		void load(const std::string& _filename);
+
 		void load();
 
 		std::string exportCode() const;

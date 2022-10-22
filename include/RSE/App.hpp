@@ -8,6 +8,7 @@
 #include <RSE/AppSidebarItem.hpp>
 #include <cstddef>
 #include <vector>
+#include <string>
 
 namespace RSE
 {
@@ -46,6 +47,8 @@ namespace RSE
 	public:
 
 		App();
+
+		void open(const std::string& _file);
 
 		int launch();
 

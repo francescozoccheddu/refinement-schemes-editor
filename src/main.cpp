@@ -1,6 +1,18 @@
 #include <RSE/App.hpp>
 
-int main(int argc, char** argv)
+#include <iostream>
+
+int main(int _argc, char** _argv)
 {
-    return RSE::App{}.launch();
+    RSE::App app{};
+    if (_argc == 2)
+    {
+        app.open(_argv[1]);
+    }
+    else if (_argc > 2)
+    {
+        std::cerr << "0 or 1 arguments expected" << std::endl;
+        return 1;
+    }
+    return app.launch();
 }

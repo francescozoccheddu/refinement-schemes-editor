@@ -68,8 +68,8 @@ namespace RSE
 	{
 		if (m_activeChild.has_value())
 		{
-			onActiveVertChange();
 			m_activeChild = std::nullopt;
+			onActiveVertChange();
 		}
 		for (ChildControl* child : m_children)
 		{
@@ -80,38 +80,43 @@ namespace RSE
 		onChildrenClear();
 	}
 
+	void AppSidebarItem::load(const std::string& _filename)
+	{
+		clear();
+		m_file = _filename;
+		onFileChange();
+		std::ifstream file{};
+		file.open(_filename);
+		cpputils::serialization::Deserializer s{ file };
+		Int size;
+		s >> size;
+		m_sourceControl.setSize(size);
+		std::size_t childrenSize{};
+		s >> childrenSize;
+		m_children.reserve(childrenSize);
+		while (childrenSize > 0)
+		{
+			ChildControl& child{ *new ChildControl{m_sourceControl.clipMin(), m_sourceControl.clipMax()} };
+			m_children.push_back(&child);
+			HexVertsU verts;
+			for (IVec3& vert : verts)
+			{
+				s >> vert.x() >> vert.y() >> vert.z();
+			}
+			child.setVerts(verts);
+			childrenSize--;
+			onChildAdd();
+		}
+		file.close();
+		doUpdateColors();
+	}
+
 	void AppSidebarItem::load()
 	{
 		const std::string filename{ cinolib::file_dialog_open() };
 		if (!filename.empty())
 		{
-			clear();
-			m_file = filename;
-			onFileChange();
-			std::ifstream file{};
-			file.open(filename);
-			cpputils::serialization::Deserializer s{ file };
-			Int size;
-			s >> size;
-			m_sourceControl.setSize(size);
-			std::size_t childrenSize{};
-			s >> childrenSize;
-			m_children.reserve(childrenSize);
-			while (childrenSize > 0)
-			{
-				ChildControl& child{ *new ChildControl{m_sourceControl.clipMin(), m_sourceControl.clipMax()} };
-				m_children.push_back(&child);
-				HexVertsU verts;
-				for (IVec3& vert : verts)
-				{
-					s >> vert.x() >> vert.y() >> vert.z();
-				}
-				child.setVerts(verts);
-				childrenSize--;
-				onChildAdd();
-			}
-			file.close();
-			doUpdateColors();
+			load(filename);
 		}
 	}
 

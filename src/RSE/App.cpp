@@ -492,6 +492,11 @@ namespace RSE
 		setWindowTitle();
 	}
 
+	void App::open(const std::string& _file)
+	{
+		m_appWidget.load(_file);
+	}
+
 	int App::launch()
 	{
 		return m_canvas.launch();
