@@ -18,7 +18,7 @@ namespace RSE
 		}
 	}
 
-	ChildControl::ChildControl(const HexVertsU& _verts) : m_expanded{ false }, m_visible{ true }, m_solo{ false }, m_hexControl{ _verts, true }, m_style{ 0.0f,0.0f,0.5f }
+	ChildControl::ChildControl(const HexVertsU& _verts) : m_expanded{ false }, m_visible{ true }, m_solo{ false }, m_hexControl{ _verts, true }, m_style{ 0.0f,0.0f,0.5f }, m_maxSize{}
 	{
 		for (const IVec3& vert : _verts)
 		{
