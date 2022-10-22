@@ -48,6 +48,8 @@ namespace RSE
 
 		bool visible() const;
 
+		void randomColor();
+
 		bool selected() const;
 
 		bool active() const;

@@ -36,7 +36,6 @@ namespace RSE
 		std::optional<std::string> m_file{};
 
 		Int minRequiredSize() const;
-		void doUpdateColors();
 		void updateSelection();
 
 		void addChild(const IVec3& _min, const IVec3& _max);

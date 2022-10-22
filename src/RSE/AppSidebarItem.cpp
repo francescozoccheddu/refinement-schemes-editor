@@ -11,6 +11,7 @@
 #include <algorithm>
 #include <fstream>
 #include <cctype>
+#include <ranges>
 #include <string>
 #include <RSE/Style.hpp>
 #include <RSE/CppExporter.hpp>
@@ -108,7 +109,6 @@ namespace RSE
 			onChildAdd();
 		}
 		file.close();
-		doUpdateColors();
 	}
 
 	void AppSidebarItem::load()
@@ -212,8 +212,8 @@ namespace RSE
 	{
 		m_children.push_back(new ChildControl{ _verts });
 		m_children.back()->setActive(false);
+		m_children.back()->randomColor();
 		onChildAdd();
-		doUpdateColors();
 	}
 
 	void AppSidebarItem::removeChild(std::size_t _child)
@@ -235,7 +235,6 @@ namespace RSE
 			m_activeChild = *m_activeChild - 1;
 		}
 		onChildRemove(_child);
-		doUpdateColors();
 	}
 
 	void AppSidebarItem::setActiveVert(std::size_t _vert)
@@ -306,15 +305,6 @@ namespace RSE
 	AppSidebarItem::ChildControls AppSidebarItem::children() const
 	{
 		return ChildControls{ m_children };
-	}
-
-	void AppSidebarItem::doUpdateColors()
-	{
-		for (std::size_t i{}; i < m_children.size(); i++)
-		{
-			m_children[i]->style() = Style{ (i / static_cast<float>(m_children.size())) * 360.0f };
-			onChildUpdate(i);
-		}
 	}
 
 	bool AppSidebarItem::shown(const ChildControl& _child) const
@@ -516,12 +506,17 @@ namespace RSE
 
 	void AppSidebarItem::removeShown()
 	{
-		for (std::size_t iPlusOne{ m_children.size() }; iPlusOne > 0; iPlusOne--)
+		std::vector<std::size_t> toRemove{};
+		for (std::size_t i{}; i < m_children.size(); i++)
 		{
-			if (shown(*m_children[iPlusOne - 1]))
+			if (shown(*m_children[i]))
 			{
-				removeChild(iPlusOne - 1);
+				toRemove.push_back(i);
 			}
+		}
+		for (std::size_t i : std::ranges::views::reverse(toRemove))
+		{
+			removeChild(i);
 		}
 	}
 
@@ -779,7 +774,7 @@ namespace RSE
 			bool solidMode{ m_solidMode };
 			if (ImGui::Checkbox("Solid", &solidMode))
 			{
-				setSolidMode(singleMode);
+				setSolidMode(solidMode);
 			}
 		}
 		// command bar

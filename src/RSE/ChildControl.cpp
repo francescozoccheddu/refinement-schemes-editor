@@ -5,6 +5,7 @@
 #include <sstream>
 #include <string_view>
 #include <algorithm>
+#include <random>
 
 namespace RSE
 {
@@ -27,8 +28,7 @@ namespace RSE
 	}
 
 	ChildControl::ChildControl(const IVec3& _min, const IVec3& _max) : ChildControl{ IHexControl::cubeVerts(_min, _max) }
-	{
-	}
+	{}
 
 	Style& ChildControl::style()
 	{
@@ -38,6 +38,18 @@ namespace RSE
 	const Style& ChildControl::style() const
 	{
 		return m_style;
+	}
+
+	void ChildControl::randomColor()
+	{
+		std::random_device device;
+		std::mt19937 gen(device());
+		std::uniform_int_distribution<> distr(25, 63);
+		m_style = Style{
+			std::uniform_real_distribution<float>(0.0f,360.0f)(gen),
+			std::uniform_real_distribution<float>(0.5f,1.0f)(gen),
+			std::uniform_real_distribution<float>(0.8f,1.0f)(gen)
+		};
 	}
 
 	const IHexControl& ChildControl::hexControl() const
@@ -77,7 +89,6 @@ namespace RSE
 		update();
 	}
 
-
 	void ChildControl::setActive(bool _active)
 	{
 		m_active = _active;
@@ -101,7 +112,7 @@ namespace RSE
 	ChildControl::EResult ChildControl::draw(const IVec3& _min, const IVec3& _max, const std::optional<HexVertsU>& _copiedVerts, const std::optional<IVec3>& _copiedVert, EVisibilityMode _visibilityMode)
 	{
 		m_style.pushImGui();
-		bool updated{ false };
+		bool updated{ false }, colorUpdated{ false };
 		// visibility
 		if (_visibilityMode != EVisibilityMode::Hidden)
 		{
@@ -139,6 +150,12 @@ namespace RSE
 			}
 			ImGui::Spacing();
 			updated |= m_hexControl.draw(true, _min, _max, _copiedVerts, _copiedVert);
+			ImGui::Spacing();
+			if (ImGui::SmallButton("Random color"))
+			{
+				randomColor();
+				colorUpdated = true;
+			}
 		}
 		Style::popImGui();
 		if (updated)
@@ -149,7 +166,7 @@ namespace RSE
 		{
 			return EResult::Removed;
 		}
-		return updated ? EResult::Updated : EResult::None;
+		return updated || colorUpdated ? EResult::Updated : EResult::None;
 	}
 
 }
