@@ -118,7 +118,7 @@ namespace RSE
 		{
 			const ImGuiStyle& style{ ImGui::GetStyle() };
 			ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ style.ItemSpacing.x / 2, style.ItemSpacing.y });
-			ImGui::PushStyleVar(ImGuiStyleVar_Alpha, style.Alpha * (_visibilityMode == EVisibilityMode::SomeSelected && !m_selected) ? 0.5f : 1.0f);
+			ImGui::PushStyleVar(ImGuiStyleVar_Alpha, style.Alpha * ((_visibilityMode == EVisibilityMode::SomeSelected && !m_selected) ? 0.5f : 1.0f));
 			ImGui::Checkbox("##visible", &m_visible);
 			m_selected &= m_visible;
 			ImGui::PopStyleVar();

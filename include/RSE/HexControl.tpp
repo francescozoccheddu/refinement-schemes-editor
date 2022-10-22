@@ -32,7 +32,7 @@ namespace RSE::internal
 	}
 
 	template<bool TInt>
-	HexControl<TInt>::Verts HexControl<TInt>::cubeVerts(const Vert& _min, const Vert& _max)
+	typename HexControl<TInt>::Verts HexControl<TInt>::cubeVerts(const Vert& _min, const Vert& _max)
 	{
 		return hexUtils::cubeVerts<Value>(_min, _max);
 	}
@@ -248,17 +248,17 @@ namespace RSE::internal
 			ImGui::SetCursorPosY(cursor.y + textYOffs);
 			if (dragging)
 			{
-				ImGui::Text("  <--- %d", i);
+				ImGui::Text("  <--- %d", static_cast<int>(i));
 			}
 			else
 			{
 				if (firstIs[i] == i)
 				{
-					ImGui::TextDisabled("--- %d", i);
+					ImGui::TextDisabled("--- %d", static_cast<int>(i));
 				}
 				else
 				{
-					ImGui::TextColored(ImVec4{ 1.0f,1.0f,0.0f,1.0f }, "--- %d", firstIs[i]);
+					ImGui::TextColored(ImVec4{ 1.0f,1.0f,0.0f,1.0f }, "--- %d", static_cast<int>(firstIs[i]));
 				}
 			}
 			ImGui::SameLine();
@@ -349,7 +349,7 @@ namespace RSE::internal
 	template<bool TInt>
 	bool HexControl<TInt>::draw(bool _activeVertSel, Value _min, Value _max)
 	{
-		return draw(_activeVertSel, Vert{_min, _min, _min}, Vert{_max, _max, _max});
+		return draw(_activeVertSel, Vert{ _min, _min, _min }, Vert{ _max, _max, _max });
 	}
 
 }

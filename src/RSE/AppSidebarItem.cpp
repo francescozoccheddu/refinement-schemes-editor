@@ -11,7 +11,6 @@
 #include <algorithm>
 #include <fstream>
 #include <cctype>
-#include <ranges>
 #include <string>
 #include <RSE/Style.hpp>
 #include <RSE/CppExporter.hpp>
@@ -515,9 +514,9 @@ namespace RSE
 				toRemove.push_back(i);
 			}
 		}
-		for (std::size_t i : std::ranges::views::reverse(toRemove))
+		for (std::size_t iPlusOne{ m_children.size() }; iPlusOne > 0; iPlusOne--)
 		{
-			removeChild(i);
+			removeChild(iPlusOne - 1);
 		}
 	}
 
@@ -602,18 +601,20 @@ namespace RSE
 			ImGui::Spacing();
 			switch (m_sourceControl.draw(minRequiredSize()))
 			{
-				case SourceControl::EResult::DoubledSize:
-					for (ChildControl* child : m_children)
-					{
-						HexVertsU verts{ child->hexControl().verts() };
-						hexUtils::scaleVerts(verts, IVec3{ 2,2,2 });
-						child->setVerts(verts);
-					}
-				case SourceControl::EResult::Updated:
-					onSourceUpdate();
-				case SourceControl::EResult::CursorUpdated:
-					onCursorUpdate();
-					break;
+			case SourceControl::EResult::DoubledSize:
+				for (ChildControl* child : m_children)
+				{
+					HexVertsU verts{ child->hexControl().verts() };
+					hexUtils::scaleVerts(verts, IVec3{ 2,2,2 });
+					child->setVerts(verts);
+				}
+			case SourceControl::EResult::Updated:
+				onSourceUpdate();
+			case SourceControl::EResult::CursorUpdated:
+				onCursorUpdate();
+				break;
+			default:
+				break;
 			}
 		}
 		// edit
@@ -692,7 +693,7 @@ namespace RSE
 				}
 				else
 				{
-					ImGui::TextDisabled("%d children:", m_children.size());
+					ImGui::TextDisabled("%d children:", static_cast<int>(m_children.size()));
 				}
 			}
 			ImGui::Spacing();
@@ -730,18 +731,20 @@ namespace RSE
 				}
 				switch (result)
 				{
-					case ChildControl::EResult::Updated:
-						onChildUpdate(i);
-						if (wasActive && child.active() && child.hexControl().verts()[*activeVertIndex()] != oldActiveVertValue)
-						{
-							onActiveVertChange();
-						}
-						m_sourceControl.setSize(std::max(m_sourceControl.size(), child.maxSize()));
-						break;
-					case ChildControl::EResult::Removed:
-						removeChild(i);
-						--i;
-						break;
+				case ChildControl::EResult::Updated:
+					onChildUpdate(i);
+					if (wasActive && child.active() && child.hexControl().verts()[*activeVertIndex()] != oldActiveVertValue)
+					{
+						onActiveVertChange();
+					}
+					m_sourceControl.setSize(std::max(m_sourceControl.size(), child.maxSize()));
+					break;
+				case ChildControl::EResult::Removed:
+					removeChild(i);
+					--i;
+					break;
+				default:
+					break;
 				}
 				ImGui::Spacing();
 				ImGui::PopID();
@@ -789,7 +792,7 @@ namespace RSE
 		ImGui::Spacing();
 		if (m_file)
 		{
-			ImGui::TextDisabled(m_file->c_str());
+			ImGui::TextDisabled("%s", m_file->c_str());
 			ImGui::Spacing();
 		}
 		if (m_file)

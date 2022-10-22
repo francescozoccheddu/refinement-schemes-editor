@@ -135,7 +135,7 @@ namespace RSE
 			m_canvas.markers[mi] = cinolib::Marker{
 				.pos_3d = RVec3{0,0,0},
 				.text{std::to_string(i)},
-				.filled{false}
+				.filled = false
 			};
 		}
 		m_canvas.push(m_childMeshes.back(), false);
@@ -251,163 +251,163 @@ namespace RSE
 		{
 			switch (_key)
 			{
-				case GLFW_KEY_A:
-					m_appWidget.addChild();
-					m_appWidget.setActiveChild(m_appWidget.children().size() - 1);
-					return true;
-				case GLFW_KEY_U:
-					m_appWidget.setSolidMode(!m_appWidget.solidMode());
-					return true;
-				case GLFW_KEY_X:
-					m_appWidget.editDim = hexUtils::EDim::X;
-					return true;
-				case GLFW_KEY_Y:
-					m_appWidget.editDim = hexUtils::EDim::Y;
-					return true;
-				case GLFW_KEY_Z:
-					m_appWidget.editDim = hexUtils::EDim::Z;
-					return true;
-				case GLFW_KEY_UP:
-					onAdvanceActiveChild(false);
-					return true;
-				case GLFW_KEY_DOWN:
-					onAdvanceActiveChild(true);
-					return true;
-				case GLFW_KEY_LEFT:
-					onAdvanceActiveVert(false);
-					return true;
-				case GLFW_KEY_RIGHT:
-					onAdvanceActiveVert(true);
-					return true;
-				case GLFW_KEY_KP_0:
-				case GLFW_KEY_0:
-					onSetActiveVert(0);
-					return true;
-				case GLFW_KEY_KP_1:
-				case GLFW_KEY_1:
-					onSetActiveVert(1);
-					return true;
-				case GLFW_KEY_KP_2:
-				case GLFW_KEY_2:
-					onSetActiveVert(2);
-					return true;
-				case GLFW_KEY_KP_3:
-				case GLFW_KEY_3:
-					onSetActiveVert(3);
-					return true;
-				case GLFW_KEY_KP_4:
-				case GLFW_KEY_4:
-					onSetActiveVert(4);
-					return true;
-				case GLFW_KEY_KP_5:
-				case GLFW_KEY_5:
-					onSetActiveVert(5);
-					return true;
-				case GLFW_KEY_KP_6:
-				case GLFW_KEY_6:
-					onSetActiveVert(6);
-					return true;
-				case GLFW_KEY_KP_7:
-				case GLFW_KEY_7:
-					onSetActiveVert(7);
-					return true;
-				case GLFW_KEY_S:
-					m_appWidget.setSingleMode(!m_appWidget.singleMode());
-					return true;
-				case GLFW_KEY_H:
-					m_appWidget.setHideCursor(!m_appWidget.source().hideCursor());
-					return true;
-				case GLFW_KEY_E:
-					onSetVert();
-					onAdvanceActiveVert(true);
-					return true;
-				case GLFW_KEY_W:
-					onSetVert();
-					return true;
-				case GLFW_KEY_Q:
-					m_appWidget.cubeActive();
-					return true;
+			case GLFW_KEY_A:
+				m_appWidget.addChild();
+				m_appWidget.setActiveChild(m_appWidget.children().size() - 1);
+				return true;
+			case GLFW_KEY_U:
+				m_appWidget.setSolidMode(!m_appWidget.solidMode());
+				return true;
+			case GLFW_KEY_X:
+				m_appWidget.editDim = hexUtils::EDim::X;
+				return true;
+			case GLFW_KEY_Y:
+				m_appWidget.editDim = hexUtils::EDim::Y;
+				return true;
+			case GLFW_KEY_Z:
+				m_appWidget.editDim = hexUtils::EDim::Z;
+				return true;
+			case GLFW_KEY_UP:
+				onAdvanceActiveChild(false);
+				return true;
+			case GLFW_KEY_DOWN:
+				onAdvanceActiveChild(true);
+				return true;
+			case GLFW_KEY_LEFT:
+				onAdvanceActiveVert(false);
+				return true;
+			case GLFW_KEY_RIGHT:
+				onAdvanceActiveVert(true);
+				return true;
+			case GLFW_KEY_KP_0:
+			case GLFW_KEY_0:
+				onSetActiveVert(0);
+				return true;
+			case GLFW_KEY_KP_1:
+			case GLFW_KEY_1:
+				onSetActiveVert(1);
+				return true;
+			case GLFW_KEY_KP_2:
+			case GLFW_KEY_2:
+				onSetActiveVert(2);
+				return true;
+			case GLFW_KEY_KP_3:
+			case GLFW_KEY_3:
+				onSetActiveVert(3);
+				return true;
+			case GLFW_KEY_KP_4:
+			case GLFW_KEY_4:
+				onSetActiveVert(4);
+				return true;
+			case GLFW_KEY_KP_5:
+			case GLFW_KEY_5:
+				onSetActiveVert(5);
+				return true;
+			case GLFW_KEY_KP_6:
+			case GLFW_KEY_6:
+				onSetActiveVert(6);
+				return true;
+			case GLFW_KEY_KP_7:
+			case GLFW_KEY_7:
+				onSetActiveVert(7);
+				return true;
+			case GLFW_KEY_S:
+				m_appWidget.setSingleMode(!m_appWidget.singleMode());
+				return true;
+			case GLFW_KEY_H:
+				m_appWidget.setHideCursor(!m_appWidget.source().hideCursor());
+				return true;
+			case GLFW_KEY_E:
+				onSetVert();
+				onAdvanceActiveVert(true);
+				return true;
+			case GLFW_KEY_W:
+				onSetVert();
+				return true;
+			case GLFW_KEY_Q:
+				m_appWidget.cubeActive();
+				return true;
 			}
 		}
 		else if (_modifiers == GLFW_MOD_SHIFT)
 		{
 			switch (_key)
 			{
-				case GLFW_KEY_A:
-					m_appWidget.addChildrenCursorGrid();
-					return true;
+			case GLFW_KEY_A:
+				m_appWidget.addChildrenCursorGrid();
+				return true;
 			}
 		}
 		else if (_modifiers == GLFW_MOD_ALT)
 		{
 			switch (_key)
 			{
-				case GLFW_KEY_LEFT:
-					m_appWidget.scaleCursor(false);
-					return true;
-				case GLFW_KEY_RIGHT:
-					m_appWidget.scaleCursor(true);
-					return true;
-				case GLFW_KEY_DOWN:
-					m_appWidget.translateCursor(false);
-					return true;
-				case GLFW_KEY_UP:
-					m_appWidget.translateCursor(true);
-					return false;
+			case GLFW_KEY_LEFT:
+				m_appWidget.scaleCursor(false);
+				return true;
+			case GLFW_KEY_RIGHT:
+				m_appWidget.scaleCursor(true);
+				return true;
+			case GLFW_KEY_DOWN:
+				m_appWidget.translateCursor(false);
+				return true;
+			case GLFW_KEY_UP:
+				m_appWidget.translateCursor(true);
+				return false;
 			}
 		}
 		else if (_modifiers == GLFW_MOD_CONTROL)
 		{
 			switch (_key)
 			{
-				case GLFW_KEY_DELETE:
-					m_appWidget.removeShown();
-					return true;
-				case GLFW_KEY_DOWN:
-					m_appWidget.translateShown(false);
-					return true;
-				case GLFW_KEY_UP:
-					m_appWidget.translateShown(true);
-					return true;
-				case GLFW_KEY_Q:
-					m_appWidget.setActiveSelected(true);
-					return true;
-				case GLFW_KEY_D:
-					m_appWidget.cloneShown();
-					return true;
-				case GLFW_KEY_H:
-					m_appWidget.hideActive();
-					return true;
-				case GLFW_KEY_R:
-					m_appWidget.rotateShown();
-					return true;
-				case GLFW_KEY_F:
-					m_appWidget.flipShown();
-					return true;
-				case GLFW_KEY_A:
-					m_appWidget.setAllSelected(true);
-					return true;
-				case GLFW_KEY_S:
-					m_appWidget.save(false);
-					return true;
-				case GLFW_KEY_O:
-					m_appWidget.load();
-					return true;
+			case GLFW_KEY_DELETE:
+				m_appWidget.removeShown();
+				return true;
+			case GLFW_KEY_DOWN:
+				m_appWidget.translateShown(false);
+				return true;
+			case GLFW_KEY_UP:
+				m_appWidget.translateShown(true);
+				return true;
+			case GLFW_KEY_Q:
+				m_appWidget.setActiveSelected(true);
+				return true;
+			case GLFW_KEY_D:
+				m_appWidget.cloneShown();
+				return true;
+			case GLFW_KEY_H:
+				m_appWidget.hideActive();
+				return true;
+			case GLFW_KEY_R:
+				m_appWidget.rotateShown();
+				return true;
+			case GLFW_KEY_F:
+				m_appWidget.flipShown();
+				return true;
+			case GLFW_KEY_A:
+				m_appWidget.setAllSelected(true);
+				return true;
+			case GLFW_KEY_S:
+				m_appWidget.save(false);
+				return true;
+			case GLFW_KEY_O:
+				m_appWidget.load();
+				return true;
 			}
 		}
 		else if (_modifiers == (GLFW_MOD_CONTROL | GLFW_MOD_SHIFT))
 		{
 			switch (_key)
 			{
-				case GLFW_KEY_A:
-					m_appWidget.setAllSelected(false);
-					return true;
-				case GLFW_KEY_Q:
-					m_appWidget.setActiveSelected(false);
-					return true;
-				case GLFW_KEY_S:
-					m_appWidget.save(true);
-					return true;
+			case GLFW_KEY_A:
+				m_appWidget.setAllSelected(false);
+				return true;
+			case GLFW_KEY_Q:
+				m_appWidget.setActiveSelected(false);
+				return true;
+			case GLFW_KEY_S:
+				m_appWidget.save(true);
+				return true;
 			}
 		}
 		return false;
@@ -496,13 +496,13 @@ namespace RSE
 		m_canvas.markers[0] = cinolib::Marker{
 			.pos_3d = RVec3{0,0,0},
 			.color{cinolib::Color::WHITE()},
-			.disk_radius{4u},
-			.filled{true},
+			.disk_radius = 4u,
+			.filled = true,
 		};
 		m_canvas.markers[1] = cinolib::Marker{
 			.pos_3d = RVec3{0,0,0},
-			.disk_radius{0u},
-			.filled{false}
+			.disk_radius = 0u,
+			.filled = false
 		};
 		// border
 		m_borderMesh.set_color(cinolib::Color::GRAY());
