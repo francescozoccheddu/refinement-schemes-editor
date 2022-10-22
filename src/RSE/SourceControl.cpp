@@ -37,7 +37,7 @@ namespace RSE
 	void SourceControl::setClip(const IVec3& _min, const IVec3& _max)
 	{
 		if (_min.x() < 0 || _min.y() < 0 || _min.z() < 0 ||
-			_min.x() > _max.x() || _min.x() > _max.y() || _min.z() > _max.z() ||
+			_min.x() > _max.x() || _min.y() > _max.y() || _min.z() > _max.z() ||
 			_max.x() > m_size || _max.y() > m_size || _max.z() > m_size)
 		{
 			throw std::logic_error{ "clip out of bounds" };
