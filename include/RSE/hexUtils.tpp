@@ -5,6 +5,7 @@
 #include <RSE/hexUtils.hpp>
 
 #include <vector>
+#include <utility>
 
 namespace RSE::hexUtils
 {
@@ -59,15 +60,28 @@ namespace RSE::hexUtils
 	{
 		for (Vec3<TValue>& vert : _verts)
 		{
-			vert.x() = _doubleMid - vert.y();
-			vert.y() = vert.x();
+			switch (_dim)
+			{
+				case RSE::hexUtils::EDim::X:
+					std::swap(vert.y(), vert.z());
+					vert.y() = _doubleMid - vert.y();
+					break;
+				case RSE::hexUtils::EDim::Y:
+					std::swap(vert.x(), vert.z());
+					vert.z() = _doubleMid - vert.z();
+					break;
+				case RSE::hexUtils::EDim::Z:
+					std::swap(vert.x(), vert.y());
+					vert.x() = _doubleMid - vert.x();
+					break;
+			}
 		}
 		static constexpr std::array<HexVertData<std::size_t>, 3> inds{
 			HexVertData<std::size_t>{4,5,0,1,6,7,2,3},
 			HexVertData<std::size_t>{1,5,3,7,0,4,2,6},
 			HexVertData<std::size_t>{2,0,3,1,6,4,7,5}
 		};
-		//_verts = indexVerts(_verts, inds[static_cast<std::size_t>(_dim)]);
+		_verts = indexVerts(_verts, inds[static_cast<std::size_t>(_dim)]);
 	}
 
 	template<typename TValue>

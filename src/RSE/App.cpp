@@ -288,88 +288,88 @@ namespace RSE
 			{
 				switch (_key)
 				{
-				case GLFW_KEY_A:
-					m_appWidget.addChild();
-					m_appWidget.setActiveChild(m_appWidget.children().size() - 1);
-					return true;
-				case GLFW_KEY_W:
-					onSetVert();
-					return true;
-				case GLFW_KEY_X:
-					m_appWidget.editDim = hexUtils::EDim::X;
-					return true;
-				case GLFW_KEY_Y:
-					m_appWidget.editDim = hexUtils::EDim::Y;
-					return true;
-				case GLFW_KEY_Z:
-					m_appWidget.editDim = hexUtils::EDim::Z;
-					return true;
-				case GLFW_KEY_UP:
-					onAdvanceActiveChild(false);
-					return true;
-				case GLFW_KEY_DOWN:
-					onAdvanceActiveChild(true);
-					return true;
-				case GLFW_KEY_LEFT:
-					onAdvanceActiveVert(false);
-					return true;
-				case GLFW_KEY_RIGHT:
-					onAdvanceActiveVert(true);
-					return true;
-				case GLFW_KEY_KP_0:
-				case GLFW_KEY_0:
-					onSetActiveVert(0);
-					return true;
-				case GLFW_KEY_KP_1:
-				case GLFW_KEY_1:
-					onSetActiveVert(1);
-					return true;
-				case GLFW_KEY_KP_2:
-				case GLFW_KEY_2:
-					onSetActiveVert(2);
-					return true;
-				case GLFW_KEY_KP_3:
-				case GLFW_KEY_3:
-					onSetActiveVert(3);
-					return true;
-				case GLFW_KEY_KP_4:
-				case GLFW_KEY_4:
-					onSetActiveVert(4);
-					return true;
-				case GLFW_KEY_KP_5:
-				case GLFW_KEY_5:
-					onSetActiveVert(5);
-					return true;
-				case GLFW_KEY_KP_6:
-				case GLFW_KEY_6:
-					onSetActiveVert(6);
-					return true;
-				case GLFW_KEY_KP_7:
-				case GLFW_KEY_7:
-					onSetActiveVert(7);
-					return true;
-				case GLFW_KEY_S:
-					m_appWidget.setSingleMode(!m_appWidget.singleMode());
-					return true;
+					case GLFW_KEY_A:
+						m_appWidget.addChild();
+						m_appWidget.setActiveChild(m_appWidget.children().size() - 1);
+						return true;
+					case GLFW_KEY_W:
+						onSetVert();
+						return true;
+					case GLFW_KEY_X:
+						m_appWidget.editDim = hexUtils::EDim::X;
+						return true;
+					case GLFW_KEY_Y:
+						m_appWidget.editDim = hexUtils::EDim::Y;
+						return true;
+					case GLFW_KEY_Z:
+						m_appWidget.editDim = hexUtils::EDim::Z;
+						return true;
+					case GLFW_KEY_UP:
+						onAdvanceActiveChild(false);
+						return true;
+					case GLFW_KEY_DOWN:
+						onAdvanceActiveChild(true);
+						return true;
+					case GLFW_KEY_LEFT:
+						onAdvanceActiveVert(false);
+						return true;
+					case GLFW_KEY_RIGHT:
+						onAdvanceActiveVert(true);
+						return true;
+					case GLFW_KEY_KP_0:
+					case GLFW_KEY_0:
+						onSetActiveVert(0);
+						return true;
+					case GLFW_KEY_KP_1:
+					case GLFW_KEY_1:
+						onSetActiveVert(1);
+						return true;
+					case GLFW_KEY_KP_2:
+					case GLFW_KEY_2:
+						onSetActiveVert(2);
+						return true;
+					case GLFW_KEY_KP_3:
+					case GLFW_KEY_3:
+						onSetActiveVert(3);
+						return true;
+					case GLFW_KEY_KP_4:
+					case GLFW_KEY_4:
+						onSetActiveVert(4);
+						return true;
+					case GLFW_KEY_KP_5:
+					case GLFW_KEY_5:
+						onSetActiveVert(5);
+						return true;
+					case GLFW_KEY_KP_6:
+					case GLFW_KEY_6:
+						onSetActiveVert(6);
+						return true;
+					case GLFW_KEY_KP_7:
+					case GLFW_KEY_7:
+						onSetActiveVert(7);
+						return true;
+					case GLFW_KEY_S:
+						m_appWidget.setSingleMode(!m_appWidget.singleMode());
+						return true;
 				}
 				if (m_appWidget.activeChildIndex().has_value())
 				{
 					const std::size_t child{ m_appWidget.activeChildIndex().value() };
 					switch (_key)
 					{
-					case GLFW_KEY_E:
-						onSetVert();
-						onAdvanceActiveVert(true);
-						return true;
-					case GLFW_KEY_Q:
-						m_appWidget.cubeActive();
-						return true;
-					case GLFW_KEY_P:
-						m_appWidget.dense();
-						return true;
-					case GLFW_KEY_DELETE:
-						m_appWidget.removeChild(child);
-						return true;
+						case GLFW_KEY_E:
+							onSetVert();
+							onAdvanceActiveVert(true);
+							return true;
+						case GLFW_KEY_Q:
+							m_appWidget.cubeActive();
+							return true;
+						case GLFW_KEY_P:
+							m_appWidget.dense();
+							return true;
+						case GLFW_KEY_DELETE:
+							m_appWidget.removeChild(child);
+							return true;
 					}
 				}
 			}
@@ -377,79 +377,81 @@ namespace RSE
 			{
 				switch (_key)
 				{
-				case GLFW_KEY_A:
-					m_appWidget.dense();
-					return true;
-				case GLFW_KEY_DOWN:
-				case GLFW_KEY_UP:
-				{
-					const unsigned int dim{ static_cast<unsigned int>(m_appWidget.editDim) };
-					const Int size{ m_appWidget.source().size() };
-					IVec3 min{ m_appWidget.source().clipMin() };
-					IVec3 max{ m_appWidget.source().clipMax() };
-					Int& mind{ min[dim] }, & maxd{ max[dim] };
-					const bool increase{ _key == GLFW_KEY_UP };
-					if (mind > size - maxd)
+					case GLFW_KEY_A:
+						m_appWidget.dense();
+						return true;
+					case GLFW_KEY_DOWN:
+					case GLFW_KEY_UP:
 					{
-						if (increase)
+						const unsigned int dim{ static_cast<unsigned int>(m_appWidget.editDim) };
+						const Int size{ m_appWidget.source().size() };
+						IVec3 min{ m_appWidget.source().clipMin() };
+						IVec3 max{ m_appWidget.source().clipMax() };
+						Int& mind{ min[dim] }, & maxd{ max[dim] };
+						const bool increase{ _key == GLFW_KEY_UP };
+						if (mind > size - maxd)
 						{
-							mind = std::max(0, mind - 1);
+							if (increase)
+							{
+								mind = std::max(0, mind - 1);
+							}
+							else
+							{
+								maxd = std::max(mind, maxd - 1);
+							}
 						}
 						else
 						{
-							maxd = std::max(mind, maxd - 1);
-						}
-					}
-					else
-					{
-						if (increase)
-						{
-							maxd = std::min(size, maxd + 1);
-						}
-						else
-						{
-							mind = std::min(maxd, mind + 1);
-						}
-					}
-					m_appWidget.setClip(min, max);
-				}
-				return true;
-				case GLFW_KEY_LEFT:
-				case GLFW_KEY_RIGHT:
-				{
-					const unsigned int dim{ static_cast<unsigned int>(m_appWidget.editDim) };
-					const Int size{ m_appWidget.source().size() };
-					IVec3 min{ m_appWidget.source().clipMin() };
-					IVec3 max{ m_appWidget.source().clipMax() };
-					Int& mind{ min[dim] }, & maxd{ max[dim] };
-					const bool increase{ _key == GLFW_KEY_RIGHT };
-					if ((increase && maxd < size) || (!increase && mind > 0))
-					{
-						if (increase)
-						{
-							mind++;
-							maxd++;
-						}
-						else
-						{
-							mind--;
-							maxd--;
+							if (increase)
+							{
+								maxd = std::min(size, maxd + 1);
+							}
+							else
+							{
+								mind = std::min(maxd, mind + 1);
+							}
 						}
 						m_appWidget.setClip(min, max);
 					}
-				}
+					return true;
+
 				}
 			}
 			else if (_modifiers == GLFW_MOD_CONTROL)
 			{
 				switch (_key)
 				{
-				case GLFW_KEY_S:
-					m_appWidget.save(false);
-					break;
-				case GLFW_KEY_O:
-					m_appWidget.load();
-					break;
+					case GLFW_KEY_S:
+						m_appWidget.save(false);
+						break;
+					case GLFW_KEY_O:
+						m_appWidget.load();
+						break;
+						return true;
+					case GLFW_KEY_DOWN:
+					case GLFW_KEY_UP:
+					{
+						const unsigned int dim{ static_cast<unsigned int>(m_appWidget.editDim) };
+						const Int size{ m_appWidget.source().size() };
+						IVec3 min{ m_appWidget.source().clipMin() };
+						IVec3 max{ m_appWidget.source().clipMax() };
+						Int& mind{ min[dim] }, & maxd{ max[dim] };
+						const bool increase{ _key == GLFW_KEY_UP };
+						if ((increase && maxd < size) || (!increase && mind > 0))
+						{
+							if (increase)
+							{
+								mind++;
+								maxd++;
+							}
+							else
+							{
+								mind--;
+								maxd--;
+							}
+							m_appWidget.setClip(min, max);
+						}
+					}
 					return true;
 				}
 			}
@@ -457,9 +459,9 @@ namespace RSE
 			{
 				switch (_key)
 				{
-				case GLFW_KEY_S:
-					m_appWidget.save(true);
-					break;
+					case GLFW_KEY_S:
+						m_appWidget.save(true);
+						break;
 				}
 			}
 			return false;
