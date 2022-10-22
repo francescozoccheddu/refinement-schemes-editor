@@ -19,7 +19,7 @@ namespace RSE
 			std::array<Vec3<TOut>, TSize> out;
 			for (std::size_t i{}; i < _vecs.size(); i++)
 			{
-				out[i] = _vecs[i].cast<TOut>();
+				out[i] = _vecs[i].template cast<TOut>();
 			}
 			return out;
 		}
@@ -38,7 +38,7 @@ namespace RSE
 			out.resize(_vecs.size());
 			for (std::size_t i{}; i < _vecs.size(); i++)
 			{
-				out[i] = _vecs[i].cast<TOut>();
+				out[i] = _vecs[i].template cast<TOut>();
 			}
 			return out;
 		}
