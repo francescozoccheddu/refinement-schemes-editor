@@ -96,7 +96,7 @@ namespace RSE
 		m_children.reserve(childrenSize);
 		while (childrenSize > 0)
 		{
-			ChildControl& child{ *new ChildControl{m_sourceControl.clipMin(), m_sourceControl.clipMax()} };
+			ChildControl& child{ *new ChildControl{m_sourceControl.cursorMin(), m_sourceControl.cursorMax()} };
 			m_children.push_back(&child);
 			HexVertsU verts;
 			for (IVec3& vert : verts)
@@ -183,7 +183,7 @@ namespace RSE
 
 	void AppSidebarItem::addChild()
 	{
-		addChild(m_sourceControl.clipMin(), m_sourceControl.clipMax());
+		addChild(m_sourceControl.cursorMin(), m_sourceControl.cursorMax());
 	}
 
 	void AppSidebarItem::addChild(const IVec3& _min, const IVec3& _max)
@@ -331,7 +331,7 @@ namespace RSE
 		{
 			ChildControl& child{ *m_children[*m_activeChild] };
 			const IVec3 oldActiveVert{ child.hexControl().verts()[child.hexControl().activeVert()] };
-			child.setVerts(hexUtils::cubeVerts(m_sourceControl.clipMin(), m_sourceControl.clipMax()));
+			child.setVerts(hexUtils::cubeVerts(m_sourceControl.cursorMin(), m_sourceControl.cursorMax()));
 			onChildUpdate(*m_activeChild);
 			if (child.hexControl().verts()[child.hexControl().activeVert()] != oldActiveVert)
 			{
@@ -340,20 +340,29 @@ namespace RSE
 		}
 	}
 
-	void AppSidebarItem::setClip(const IVec3& _min, const IVec3& _max)
+	void AppSidebarItem::setCursor(const IVec3& _min, const IVec3& _max)
 	{
-		const IVec3 oldMin{ m_sourceControl.clipMin() }, oldMax{ m_sourceControl.clipMax() };
-		m_sourceControl.setClip(_min, _max);
+		const IVec3 oldMin{ m_sourceControl.cursorMin() }, oldMax{ m_sourceControl.cursorMax() };
+		m_sourceControl.setCursor(_min, _max);
 		if (oldMin != _min || oldMax != _max)
 		{
-			onSourceClipUpdate();
+			onCursorUpdate();
 		}
 	}
 
-	void AppSidebarItem::addChildrenClipGrid()
+	void AppSidebarItem::setHideCursor(bool _hidden)
 	{
-		const IVec3 min{ m_sourceControl.clipMin() };
-		const IVec3 max{ m_sourceControl.clipMax() };
+		if (_hidden != m_sourceControl.hideCursor())
+		{
+			m_sourceControl.hideCursor() = _hidden;
+			onCursorUpdate();
+		}
+	}
+
+	void AppSidebarItem::addChildrenCursorGrid()
+	{
+		const IVec3 min{ m_sourceControl.cursorMin() };
+		const IVec3 max{ m_sourceControl.cursorMax() };
 		IVec3 a, b;
 		for (Int x{ min.x() }; x < max.x(); x++)
 		{
@@ -401,12 +410,12 @@ namespace RSE
 		}
 	}
 
-	void AppSidebarItem::translateClip(bool _advance)
+	void AppSidebarItem::translateCursor(bool _advance)
 	{
 		const unsigned int dim{ static_cast<unsigned int>(editDim) };
 		const Int size{ source().size() };
-		IVec3 min{ source().clipMin() };
-		IVec3 max{ source().clipMax() };
+		IVec3 min{ source().cursorMin() };
+		IVec3 max{ source().cursorMax() };
 		Int& mind{ min[dim] }, & maxd{ max[dim] };
 		if ((_advance && maxd < size) || (!_advance && mind > 0))
 		{
@@ -421,15 +430,15 @@ namespace RSE
 				maxd--;
 			}
 		}
-		setClip(min, max);
+		setCursor(min, max);
 	}
 
-	void AppSidebarItem::scaleClip(bool _advance)
+	void AppSidebarItem::scaleCursor(bool _advance)
 	{
 		const unsigned int dim{ static_cast<unsigned int>(editDim) };
 		const Int size{ source().size() };
-		IVec3 min{ source().clipMin() };
-		IVec3 max{ source().clipMax() };
+		IVec3 min{ source().cursorMin() };
+		IVec3 max{ source().cursorMax() };
 		Int& mind{ min[dim] }, & maxd{ max[dim] };
 		if (mind > size - maxd)
 		{
@@ -453,7 +462,7 @@ namespace RSE
 				mind = std::min(maxd, mind + 1);
 			}
 		}
-		setClip(min, max);
+		setCursor(min, max);
 	}
 
 	void AppSidebarItem::translateShown(bool _advance)
@@ -473,7 +482,7 @@ namespace RSE
 				}
 			}
 		}
-		IVec3 offset{0,0,0};
+		IVec3 offset{ 0,0,0 };
 		offset[dim] = _advance ? 1 : static_cast<Int>(-1);
 		for (std::size_t i{}; i < m_children.size(); i++)
 		{
@@ -589,8 +598,8 @@ namespace RSE
 					}
 				case SourceControl::EResult::Updated:
 					onSourceUpdate();
-				case SourceControl::EResult::ClipUpdated:
-					onSourceClipUpdate();
+				case SourceControl::EResult::CursorUpdated:
+					onCursorUpdate();
 					break;
 			}
 		}
@@ -693,7 +702,7 @@ namespace RSE
 						? ChildControl::EVisibilityMode::SomeSelected
 						: ChildControl::EVisibilityMode::Default
 				};
-				const ChildControl::EResult result{ child.draw(m_sourceControl.clipMin(), m_sourceControl.clipMax(), copiedVerts, copiedVert, mode) };
+				const ChildControl::EResult result{ child.draw(m_sourceControl.cursorMin(), m_sourceControl.cursorMax(), copiedVerts, copiedVert, mode) };
 				if (wasSelected != child.selected())
 				{
 					updateSelection();
@@ -741,7 +750,7 @@ namespace RSE
 			ImGui::SameLine();
 			if (ImGui::Button("Dense"))
 			{
-				addChildrenClipGrid();
+				addChildrenCursorGrid();
 			}
 			ImGui::SameLine();
 			bool singleMode{ m_singleMode };

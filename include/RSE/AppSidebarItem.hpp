@@ -48,7 +48,7 @@ namespace RSE
 		AppSidebarItem();
 
 		cpputils::collections::Event<AppSidebarItem> onSourceUpdate;
-		cpputils::collections::Event<AppSidebarItem> onSourceClipUpdate;
+		cpputils::collections::Event<AppSidebarItem> onCursorUpdate;
 		cpputils::collections::Event<AppSidebarItem> onChildrenClear;
 		cpputils::collections::Event<AppSidebarItem> onChildAdd;
 		cpputils::collections::Event<AppSidebarItem> onFileChange;
@@ -56,13 +56,15 @@ namespace RSE
 		cpputils::collections::Event<AppSidebarItem, std::size_t> onChildRemove;
 		cpputils::collections::Event<AppSidebarItem, std::size_t> onChildUpdate;
 
+		void setHideCursor(bool _hidden);
+
 		const std::optional<std::string>& file() const;
 
 		void clear();
 
 		void save(bool _new);
 
-		void addChildrenClipGrid();
+		void addChildrenCursorGrid();
 
 		void flipShown();
 
@@ -82,9 +84,9 @@ namespace RSE
 
 		void translateShown(bool _advance);
 
-		void translateClip(bool _advance);
+		void translateCursor(bool _advance);
 
-		void scaleClip(bool _advance);
+		void scaleCursor(bool _advance);
 
 		void removeChild(std::size_t _child);
 
@@ -108,7 +110,7 @@ namespace RSE
 
 		void cubeActive();
 
-		void setClip(const IVec3& _min, const IVec3& _max);
+		void setCursor(const IVec3& _min, const IVec3& _max);
 
 		std::optional<std::size_t> activeChildIndex() const;
 

@@ -30,7 +30,7 @@ namespace RSE
 		std::size_t m_mouseGridIndex{};
 
 		void onGridUpdate();
-		void onGridClipUpdate();
+		void onGridCursorUpdate();
 		void onChildUpdate(std::size_t _child);
 		void onChildAdd();
 		void onChildrenClear();

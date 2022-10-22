@@ -7,7 +7,7 @@ namespace RSE
 {
 
 	SourceControl::SourceControl()
-		: m_size{ 3 }, m_displacementControl{ RHexControl::cubeVerts(RVec3{-c_maxExtent,-c_maxExtent, -c_maxExtent}, RVec3{c_maxExtent,c_maxExtent, c_maxExtent}) }, m_clipMin{ 0,0,0 }, m_clipMax{ m_size, m_size, m_size }
+		: m_size{ 3 }, m_displacementControl{ RHexControl::cubeVerts(RVec3{-c_maxExtent,-c_maxExtent, -c_maxExtent}, RVec3{c_maxExtent,c_maxExtent, c_maxExtent}) }, m_cursorMin{ 0,0,0 }, m_cursorMax{ m_size, m_size, m_size }
 	{}
 
 	void SourceControl::setDisplacement(const HexVerts& _verts)
@@ -34,26 +34,36 @@ namespace RSE
 		return m_size;
 	}
 
-	void SourceControl::setClip(const IVec3& _min, const IVec3& _max)
+	void SourceControl::setCursor(const IVec3& _min, const IVec3& _max)
 	{
 		if (_min.x() < 0 || _min.y() < 0 || _min.z() < 0 ||
 			_min.x() > _max.x() || _min.y() > _max.y() || _min.z() > _max.z() ||
 			_max.x() > m_size || _max.y() > m_size || _max.z() > m_size)
 		{
-			throw std::logic_error{ "clip out of bounds" };
+			throw std::logic_error{ "cursor out of bounds" };
 		}
-		m_clipMin = _min;
-		m_clipMax = _max;
+		m_cursorMin = _min;
+		m_cursorMax = _max;
 	}
 
-	const IVec3& SourceControl::clipMin() const
+	const IVec3& SourceControl::cursorMin() const
 	{
-		return m_clipMin;
+		return m_cursorMin;
 	}
 
-	const IVec3& SourceControl::clipMax() const
+	const IVec3& SourceControl::cursorMax() const
 	{
-		return m_clipMax;
+		return m_cursorMax;
+	}
+
+	bool& SourceControl::hideCursor()
+	{
+		return m_hideCursor;
+	}
+
+	bool SourceControl::hideCursor() const
+	{
+		return m_hideCursor;
 	}
 
 	SourceControl::EResult SourceControl::draw(Int _minSize)
@@ -67,8 +77,8 @@ namespace RSE
 		const float speed{ (m_size - _minSize) / 100.0f };
 		if (ImGui::DragInt("Size", &m_size, 1.0f / 100.0f, _minSize, c_maxSize, "%d", ImGuiSliderFlags_AlwaysClamp))
 		{
-			m_clipMin = IVec3{ 0,0,0 };
-			m_clipMax = IVec3{ m_size, m_size, m_size };
+			m_cursorMin = IVec3{ 0,0,0 };
+			m_cursorMax = IVec3{ m_size, m_size, m_size };
 		}
 		if (m_size * 2 <= c_maxSize)
 		{
@@ -76,8 +86,8 @@ namespace RSE
 			if (ImGui::SmallButton("Double"))
 			{
 				m_size *= 2;
-				m_clipMin *= 2;
-				m_clipMax *= 2;
+				m_cursorMin *= 2;
+				m_cursorMax *= 2;
 			}
 		}
 		bool displUpdated{ false };
@@ -100,15 +110,15 @@ namespace RSE
 			return updated;
 		} };
 		ImGui::Spacing();
-		ImGui::TextDisabled("Clipping:");
+		ImGui::TextDisabled("Cursor:");
 		ImGui::Spacing();
-		bool clipUpdated{ false };
-		const bool clipMinUpdated{ clipUpdated = dragInt3(m_clipMin, "Min") };
-		clipUpdated |= dragInt3(m_clipMax, "Max");
-		const auto limit{ [clipMinUpdated](Int& _min, Int& _max) {
+		bool cursorUpdated{ false };
+		const bool cursorMinUpdated{ cursorUpdated = dragInt3(m_cursorMin, "Min") };
+		cursorUpdated |= dragInt3(m_cursorMax, "Max");
+		const auto limit{ [cursorMinUpdated](Int& _min, Int& _max) {
 			if (_min > _max)
 			{
-				if (clipMinUpdated)
+				if (cursorMinUpdated)
 				{
 					_min = _max;
 				}
@@ -118,15 +128,20 @@ namespace RSE
 				}
 			}
 		} };
-		limit(m_clipMin.x(), m_clipMax.x());
-		limit(m_clipMin.y(), m_clipMax.y());
-		limit(m_clipMin.z(), m_clipMax.z());
+		limit(m_cursorMin.x(), m_cursorMax.x());
+		limit(m_cursorMin.y(), m_cursorMax.y());
+		limit(m_cursorMin.z(), m_cursorMax.z());
 		ImGui::Spacing();
 		if (ImGui::Button("Reset"))
 		{
-			m_clipMin = IVec3{ 0,0,0 };
-			m_clipMax = IVec3{ m_size, m_size, m_size };
-			clipUpdated = true;
+			m_cursorMin = IVec3{ 0,0,0 };
+			m_cursorMax = IVec3{ m_size, m_size, m_size };
+			cursorUpdated = true;
+		}
+		ImGui::SameLine();
+		if (ImGui::Checkbox("Hidden", &m_hideCursor))
+		{
+			cursorUpdated = true;
 		}
 		if (displUpdated)
 		{
@@ -136,9 +151,9 @@ namespace RSE
 		{
 			return (m_size == oldSize * 2) ? EResult::DoubledSize : EResult::Updated;
 		}
-		if (clipUpdated)
+		if (cursorUpdated)
 		{
-			return EResult::ClipUpdated;
+			return EResult::CursorUpdated;
 		}
 		return EResult::None;
 	}

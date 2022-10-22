@@ -38,34 +38,42 @@ namespace RSE
 		m_canvas.markers[0].pos_3d = m_grid.point(0);
 	}
 
-	void App::onGridClipUpdate()
+	void App::onGridCursorUpdate()
 	{
-		const Int layers{ m_appWidget.source().size() + 1 };
 		m_gridMesh.clear();
-		m_gridMesh.reserve(static_cast<std::size_t>(layers * layers * 3 * 2 + 8));
-		const IVec3 min{ m_appWidget.source().clipMin() };
-		const IVec3 max{ m_appWidget.source().clipMax() };
-		for (unsigned int d{}; d < 3; d++)
+		const IVec3& min{ m_appWidget.source().cursorMin() };
+		const IVec3& max{ m_appWidget.source().cursorMax() };
+		const IVec3 mouse{ m_grid.coord(m_mouseGridIndex) };
+		if (mouse.x() < min.x() || mouse.y() < min.y() || mouse.z() < min.z() ||
+			mouse.x() > max.x() || mouse.y() > max.y() || mouse.z() > max.z())
 		{
-			IVec3 coord;
-			const unsigned int ds[3]{ d, (d + 1) % 3, (d + 2) % 3 };
-			for (Int x{ min[ds[0]] }; x <= max[ds[0]]; x++)
+			m_mouseGridIndex = m_grid.index(min);
+			m_canvas.markers[0].pos_3d = m_grid.point(m_mouseGridIndex);
+		}
+		if (!m_appWidget.source().hideCursor())
+		{
+			const Int layers{ m_appWidget.source().size() + 1 };
+			m_gridMesh.reserve(static_cast<std::size_t>(layers * layers * 3 * 2 + 8));
+			for (unsigned int d{}; d < 3; d++)
 			{
-				coord[ds[0]] = x;
-				for (Int y{ min[ds[1]] }; y <= max[ds[1]]; y++)
+				IVec3 coord;
+				const unsigned int ds[3]{ d, (d + 1) % 3, (d + 2) % 3 };
+				for (Int x{ min[ds[0]] }; x <= max[ds[0]]; x++)
 				{
-					coord[ds[1]] = y;
-					for (Int z{}; z < 2; z++)
+					coord[ds[0]] = x;
+					for (Int y{ min[ds[1]] }; y <= max[ds[1]]; y++)
 					{
-						coord[ds[2]] = z ? max[ds[2]] : min[ds[2]];
-						m_gridMesh.push_back(m_grid.point(coord));
+						coord[ds[1]] = y;
+						for (Int z{}; z < 2; z++)
+						{
+							coord[ds[2]] = z ? max[ds[2]] : min[ds[2]];
+							m_gridMesh.push_back(m_grid.point(coord));
+						}
 					}
 				}
 			}
+			m_gridMesh.update_bbox();
 		}
-		m_gridMesh.update_bbox();
-		m_mouseGridIndex = m_grid.index(min);
-		m_canvas.markers[0].pos_3d = m_grid.point(m_mouseGridIndex);
 	}
 
 	void App::onChildUpdate(std::size_t _child)
@@ -226,8 +234,8 @@ namespace RSE
 	void App::onMouseMove()
 	{
 		const cinolib::Ray r{ m_canvas.eye_to_mouse_ray() };
-		const IVec3 min{ m_appWidget.source().clipMin() };
-		const IVec3 max{ m_appWidget.source().clipMax() };
+		const IVec3 min{ m_appWidget.source().cursorMin() };
+		const IVec3 max{ m_appWidget.source().cursorMax() };
 		m_mouseGridIndex = m_grid.closestToRay(r.begin(), r.dir(), min, max);
 		m_canvas.markers[0].pos_3d = m_grid.point(m_mouseGridIndex);
 	}
@@ -298,6 +306,9 @@ namespace RSE
 				case GLFW_KEY_S:
 					m_appWidget.setSingleMode(!m_appWidget.singleMode());
 					return true;
+				case GLFW_KEY_H:
+					m_appWidget.setHideCursor(!m_appWidget.source().hideCursor());
+					return true;
 				case GLFW_KEY_E:
 					onSetVert();
 					onAdvanceActiveVert(true);
@@ -315,7 +326,7 @@ namespace RSE
 			switch (_key)
 			{
 				case GLFW_KEY_A:
-					m_appWidget.addChildrenClipGrid();
+					m_appWidget.addChildrenCursorGrid();
 					return true;
 			}
 		}
@@ -324,16 +335,16 @@ namespace RSE
 			switch (_key)
 			{
 				case GLFW_KEY_LEFT:
-					m_appWidget.scaleClip(false);
+					m_appWidget.scaleCursor(false);
 					return true;
 				case GLFW_KEY_RIGHT:
-					m_appWidget.scaleClip(true);
+					m_appWidget.scaleCursor(true);
 					return true;
 				case GLFW_KEY_DOWN:
-					m_appWidget.translateClip(false);
+					m_appWidget.translateCursor(false);
 					return true;
 				case GLFW_KEY_UP:
-					m_appWidget.translateClip(true);
+					m_appWidget.translateCursor(true);
 					return false;
 			}
 		}
@@ -457,7 +468,7 @@ namespace RSE
 		// app widget
 		m_appWidget.show_open = true;
 		m_appWidget.onSourceUpdate += [this]() { onGridUpdate(); };
-		m_appWidget.onSourceClipUpdate += [this]() { onGridClipUpdate(); };
+		m_appWidget.onCursorUpdate += [this]() { onGridCursorUpdate(); };
 		m_appWidget.onChildAdd += [this]() { onChildAdd(); };
 		m_appWidget.onChildrenClear += [this]() { onChildrenClear(); };
 		m_appWidget.onActiveVertChange += [this]() { onActiveVertChange(); };
@@ -466,7 +477,7 @@ namespace RSE
 		m_appWidget.onFileChange += [this]() { setWindowTitle(); };
 		// state
 		onGridUpdate();
-		onGridClipUpdate();
+		onGridCursorUpdate();
 		onChildrenClear();
 		// canvas
 		m_canvas.background = cinolib::Color::hsv2rgb(0.0f, 0.0f, 0.1f);

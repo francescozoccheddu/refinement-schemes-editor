@@ -17,13 +17,14 @@ namespace RSE
 
 		RHexControl m_displacementControl;
 		Int m_size;
-		IVec3 m_clipMin, m_clipMax;
+		IVec3 m_cursorMin, m_cursorMax;
+		bool m_hideCursor{};
 
 	public:
 
 		enum class EResult
 		{
-			None, Updated, ClipUpdated, DoubledSize
+			None, Updated, CursorUpdated, DoubledSize
 		};
 
 		SourceControl();
@@ -36,11 +37,15 @@ namespace RSE
 
 		Int size() const;
 
-		void setClip(const IVec3& _min, const IVec3& _max);
+		bool& hideCursor();
 
-		const IVec3& clipMin() const;
+		bool hideCursor() const;
 
-		const IVec3& clipMax() const;
+		void setCursor(const IVec3& _min, const IVec3& _max);
+
+		const IVec3& cursorMin() const;
+
+		const IVec3& cursorMax() const;
 
 		EResult draw(Int _minSize = 0);
 
