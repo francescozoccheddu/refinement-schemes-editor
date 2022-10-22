@@ -302,7 +302,7 @@ namespace RSE
 
 	bool AppSidebarItem::shown(const ChildControl& _child) const
 	{
-		return _child.active() || (_child.visible() && (!m_hasAnySelected || _child.selected()));
+		return m_singleMode ? _child.active() : _child.active() || (_child.visible() && (!m_hasAnySelected || _child.selected()));
 	}
 
 	bool AppSidebarItem::singleMode() const
