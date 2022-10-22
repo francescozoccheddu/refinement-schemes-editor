@@ -30,6 +30,7 @@ namespace RSE
 		m_borderMesh.push_seg(bords[1], bords[3]);
 		m_borderMesh.push_seg(bords[4], bords[6]);
 		m_borderMesh.push_seg(bords[5], bords[7]);
+		m_borderMesh.update_bbox();
 		for (std::size_t i{}; i < m_appWidget.children().size(); i++)
 		{
 			onChildUpdate(i);
@@ -98,6 +99,7 @@ namespace RSE
 			mesh.updateGL();
 		}
 		mesh.show_mesh(valid && shown);
+		mesh.update_bbox();
 		const HexVertData<std::size_t> firstOccurrencies{ child.hexControl().firstOccurrenceIndices() };
 		for (std::size_t i{}; i < 8; i++)
 		{
@@ -410,19 +412,39 @@ namespace RSE
 
 	void App::onClick(int _modifiers)
 	{
+
 		if (_modifiers == GLFW_MOD_CONTROL)
 		{
 			onSetVert();
 		}
-		else if (_modifiers == GLFW_MOD_SHIFT)
+		else
 		{
-			if (m_appWidget.activeChildIndex())
-			{
-				const HexVertsU& verts{ m_appWidget.activeChild().hexControl().verts() };
+			const auto pickActive{ [this](std::size_t _child) {
+				const HexVertsU& verts{ m_appWidget.children()[_child].hexControl().verts() };
 				const auto it{ std::find(verts.begin(), verts.end(), m_grid.coord(m_mouseGridIndex)) };
 				if (it != verts.end())
 				{
+					m_appWidget.setActiveChild(_child);
 					m_appWidget.setActiveVert(it - verts.begin());
+					return true;
+				}
+				return false;
+			} };
+			if (_modifiers == GLFW_MOD_SHIFT)
+			{
+				for (std::size_t i{}; i < m_appWidget.children().size(); i++)
+				{
+					if (pickActive(i))
+					{
+						break;
+					}
+				}
+			}
+			else if (_modifiers == GLFW_MOD_ALT)
+			{
+				if (m_appWidget.activeChildIndex())
+				{
+					pickActive(*m_appWidget.activeChildIndex());
 				}
 			}
 		}
