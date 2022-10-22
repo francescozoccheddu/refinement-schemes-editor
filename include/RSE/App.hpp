@@ -40,6 +40,8 @@ namespace RSE
 		void onSetActiveVert(std::size_t _vert);
 		void onAdvanceActiveVert(bool _advance);
 		void onMouseMove();
+		bool onKeyPress(int _key, int _modifiers);
+		void setWindowTitle();
 
 	public:
 

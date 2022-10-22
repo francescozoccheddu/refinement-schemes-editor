@@ -51,9 +51,12 @@ namespace RSE
 		cpputils::collections::Event<AppSidebarItem> onSourceClipUpdate;
 		cpputils::collections::Event<AppSidebarItem> onChildrenClear;
 		cpputils::collections::Event<AppSidebarItem> onChildAdd;
+		cpputils::collections::Event<AppSidebarItem> onFileChange;
 		cpputils::collections::Event<AppSidebarItem> onActiveVertChange;
 		cpputils::collections::Event<AppSidebarItem, std::size_t> onChildRemove;
 		cpputils::collections::Event<AppSidebarItem, std::size_t> onChildUpdate;
+
+		const std::optional<std::string>& file() const;
 
 		void clear();
 

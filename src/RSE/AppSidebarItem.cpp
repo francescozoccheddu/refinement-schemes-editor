@@ -42,6 +42,7 @@ namespace RSE
 		if (!filename.empty())
 		{
 			m_file = filename;
+			onFileChange();
 			std::ofstream file{};
 			file.open(filename);
 			cpputils::serialization::Serializer s{ file };
@@ -56,6 +57,11 @@ namespace RSE
 			file.close();
 			std::cout << "Saved to '" << filename << "'" << std::endl;
 		}
+	}
+
+	const std::optional<std::string>& AppSidebarItem::file() const
+	{
+		return m_file;
 	}
 
 	void AppSidebarItem::clear()
@@ -81,6 +87,7 @@ namespace RSE
 		{
 			clear();
 			m_file = filename;
+			onFileChange();
 			std::ifstream file{};
 			file.open(filename);
 			cpputils::serialization::Deserializer s{ file };
