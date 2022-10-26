@@ -10,7 +10,7 @@ namespace RSE
 	ImVec4 Style::col(float _saturation, float _value, float _alpha) const
 	{
 		const cinolib::Color hsv{ color(_saturation, _value, _alpha)};
-		return ImVec4{ hsv.r, hsv.g, hsv.b, hsv.a };
+		return ImVec4{ hsv.r(), hsv.g(), hsv.b(), hsv.a()};
 	}
 
 	Style::Style(float _hue, float _saturation, float _value)

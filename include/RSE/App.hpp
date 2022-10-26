@@ -18,6 +18,11 @@ namespace RSE
 
 	private:
 
+		static constexpr std::size_t c_selectionMarkerSetInd{0};
+		static constexpr std::size_t c_mouseMarkerInd{0};
+		static constexpr std::size_t c_selectedVertMarkerInd{1};
+		static constexpr std::size_t c_vertsMarkerSetInd{1};
+
 		static const HexVerts cubeVerts;
 		cinolib::GLcanvas m_canvas;
 		cinolib::DrawableSegmentSoup m_gridMesh;
