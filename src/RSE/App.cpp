@@ -252,169 +252,169 @@ namespace RSE
 	bool App::onKeyPress(int _key, int _modifiers)
 	{
 		const cinolib::KeyBinding binding{ _key, _modifiers };
-		if (binding == kb.addChild)
+		if (binding == c_kbAddChild)
 		{
 			m_appWidget.addChild();
 			m_appWidget.setActiveChild(m_appWidget.children().size() - 1);
 		}
-		else if (binding == kb.toggleSolidMode)
+		else if (binding == c_kbToggleSolidMode)
 		{
 			m_appWidget.setSolidMode(!m_appWidget.solidMode());
 		}
-		else if (binding == kb.editDimX)
+		else if (binding == c_kbEditDimX)
 		{
 			m_appWidget.editDim = hexUtils::EDim::X;
 		}
-		else if (binding == kb.editDimY)
+		else if (binding == c_kbEditDimY)
 		{
 			m_appWidget.editDim = hexUtils::EDim::Y;
 		}
-		else if (binding == kb.editDimZ)
+		else if (binding == c_kbEditDimZ)
 		{
 			m_appWidget.editDim = hexUtils::EDim::Z;
 		}
-		else if (binding == kb.actPrevChild)
+		else if (binding == c_kbActPrevChild)
 		{
 			onAdvanceActiveChild(false);
 		}
-		else if (binding == kb.actNextChild)
+		else if (binding == c_kbActNextChild)
 		{
 			onAdvanceActiveChild(true);
 		}
-		else if (binding == kb.actPrevChild)
+		else if (binding == c_kbActPrevChild)
 		{
 			onAdvanceActiveVert(false);
 		}
-		else if (binding == kb.actNextVert)
+		else if (binding == c_kbActNextVert)
 		{
 			onAdvanceActiveVert(true);
 		}
-		else if (binding == kb.actVert0)
+		else if (binding == c_kbActVert0)
 		{
 			onSetActiveVert(0);
 		}
-		else if (binding == kb.actVert1)
+		else if (binding == c_kbActVert1)
 		{
 			onSetActiveVert(1);
 		}
-		else if (binding == kb.actVert2)
+		else if (binding == c_kbActVert2)
 		{
 			onSetActiveVert(2);
 		}
-		else if (binding == kb.actVert3)
+		else if (binding == c_kbActVert3)
 		{
 			onSetActiveVert(3);
 		}
-		else if (binding == kb.actVert4)
+		else if (binding == c_kbActVert4)
 		{
 			onSetActiveVert(4);
 		}
-		else if (binding == kb.actVert5)
+		else if (binding == c_kbActVert5)
 		{
 			onSetActiveVert(5);
 		}
-		else if (binding == kb.actVert6)
+		else if (binding == c_kbActVert6)
 		{
 			onSetActiveVert(6);
 		}
-		else if (binding == kb.actVert7)
+		else if (binding == c_kbActVert7)
 		{
 			onSetActiveVert(7);
 		}
-		else if (binding == kb.toggleSingleMode)
+		else if (binding == c_kbToggleSingleMode)
 		{
 			m_appWidget.setSingleMode(!m_appWidget.singleMode());
 		}
-		else if (binding == kb.toggleCursor)
+		else if (binding == c_kbToggleCursor)
 		{
 			m_appWidget.setHideCursor(!m_appWidget.source().hideCursor());
 		}
-		else if (binding == kb.setVertAndNextVert)
+		else if (binding == c_kbSetVertAndNextVert)
 		{
 			onSetVert();
 			onAdvanceActiveVert(true);
 		}
-		else if (binding == kb.setVert)
+		else if (binding == c_kbSetVert)
 		{
 			onSetVert();
 		}
-		else if (binding == kb.cubeActChild)
+		else if (binding == c_kbCubeActChild)
 		{
 			m_appWidget.cubeActive();
 		}
-		else if (binding == kb.addCursorChildGrid)
+		else if (binding == c_kbAddCursorChildGrid)
 		{
 			m_appWidget.addChildrenCursorGrid();
 		}
-		else if (binding == kb.shrinkCursor)
+		else if (binding == c_kbShrinkCursor)
 		{
 			m_appWidget.scaleCursor(false);
 		}
-		else if (binding == kb.expandCursor)
+		else if (binding == c_kbExpandCursor)
 		{
 			m_appWidget.scaleCursor(true);
 		}
-		else if (binding == kb.translateCursorMinus)
+		else if (binding == c_kbTranslateCursorMinus)
 		{
 			m_appWidget.translateCursor(false);
 		}
-		else if (binding == kb.translateCursorPlus)
+		else if (binding == c_kbTranslateCursorPlus)
 		{
 			m_appWidget.translateCursor(true);
 		}
-		else if (binding == kb.removeShown)
+		else if (binding == c_kbRemoveShown)
 		{
 			m_appWidget.removeShown();
 		}
-		else if (binding == kb.translateShownMinus)
+		else if (binding == c_kbTranslateShownMinus)
 		{
 			m_appWidget.translateShown(false);
 		}
-		else if (binding == kb.translateShownPlus)
+		else if (binding == c_kbTranslateShownPlus)
 		{
 			m_appWidget.translateShown(true);
 		}
-		else if (binding == kb.selActChild)
+		else if (binding == c_kbSelActChild)
 		{
 			m_appWidget.setActiveSelected(true);
 		}
-		else if (binding == kb.cloneShown)
+		else if (binding == c_kbCloneShown)
 		{
 			m_appWidget.cloneShown();
 		}
-		else if (binding == kb.hideShown)
+		else if (binding == c_kbHideShown)
 		{
 			m_appWidget.hideActive();
 		}
-		else if (binding == kb.rotateShown)
+		else if (binding == c_kbRotateShown)
 		{
 			m_appWidget.rotateShown();
 		}
-		else if (binding == kb.flipShown)
+		else if (binding == c_kbFlipShown)
 		{
 			m_appWidget.flipShown();
 		}
-		else if (binding == kb.selAll)
+		else if (binding == c_kbSelAll)
 		{
 			m_appWidget.setAllSelected(true);
 		}
-		else if (binding == kb.save)
+		else if (binding == c_kbSave)
 		{
 			m_appWidget.save(false);
 		}
-		else if (binding == kb.open)
+		else if (binding == c_kbOpen)
 		{
 			m_appWidget.load();
 		}
-		else if (binding == kb.deselAll)
+		else if (binding == c_kbDeselAll)
 		{
 			m_appWidget.setAllSelected(false);
 		}
-		else if (binding == kb.selActChild)
+		else if (binding == c_kbSelActChild)
 		{
 			m_appWidget.setActiveSelected(false);
 		}
-		else if (binding == kb.saveNew)
+		else if (binding == c_kbSaveNew)
 		{
 			m_appWidget.save(true);
 		}
@@ -428,7 +428,7 @@ namespace RSE
 	void App::onClick(int _modifiers)
 	{
 
-		if (_modifiers == mb.modSetVert)
+		if (_modifiers == c_mbModSetVert)
 		{
 			onSetVert();
 		}
@@ -446,7 +446,7 @@ namespace RSE
 				return false;
 			}
 			};
-			if (_modifiers == mb.modActChild)
+			if (_modifiers == c_mbModActChild)
 			{
 				for (std::size_t i{}; i < m_appWidget.children().size(); i++)
 				{
@@ -456,14 +456,14 @@ namespace RSE
 					}
 				}
 			}
-			else if (_modifiers == mb.modActActChildVert)
+			else if (_modifiers == c_mbModActActChildVert)
 			{
 				if (m_appWidget.activeChildIndex())
 				{
 					pickActive(*m_appWidget.activeChildIndex());
 				}
 			}
-			else if (_modifiers == mb.modActAnotherChild)
+			else if (_modifiers == c_mbModActAnotherChild)
 			{
 				for (std::size_t i{ m_appWidget.activeChildIndex().value_or(-1) + 1 }; i < m_appWidget.children().size(); i++)
 				{
@@ -499,51 +499,51 @@ namespace RSE
 	void App::printBindings()
 	{
 		std::cout << "----- Editor key bindings -----\n";
-		cinolib::print_binding(kb.toggleSingleMode.name(), "toggle single mode");
-		cinolib::print_binding(kb.toggleSolidMode.name(), "toggle solid mode");
-		cinolib::print_binding(kb.actNextChild.name(), "activate next child");
-		cinolib::print_binding(kb.actPrevChild.name(), "activate previous child");
-		cinolib::print_binding(kb.actNextVert.name(), "activate next vertex");
-		cinolib::print_binding(kb.actPrevVert.name(), "activate previous vertex");
-		cinolib::print_binding(kb.actVert0.name(), "activate vertex 0");
-		cinolib::print_binding(kb.actVert1.name(), "activate vertex 1");
-		cinolib::print_binding(kb.actVert2.name(), "activate vertex 2");
-		cinolib::print_binding(kb.actVert3.name(), "activate vertex 3");
-		cinolib::print_binding(kb.actVert4.name(), "activate vertex 4");
-		cinolib::print_binding(kb.actVert5.name(), "activate vertex 5");
-		cinolib::print_binding(kb.actVert6.name(), "activate vertex 6");
-		cinolib::print_binding(kb.actVert7.name(), "activate vertex 7");
-		cinolib::print_binding(kb.setVertAndNextVert.name(), "set vertex and activate next");
-		cinolib::print_binding(kb.setVert.name(), "set vertex");
-		cinolib::print_binding(kb.addChild.name(), "add child");
-		cinolib::print_binding(kb.addCursorChildGrid.name(), "add cursor children grid");
-		cinolib::print_binding(kb.toggleCursor.name(), "toggle cursor");
-		cinolib::print_binding(kb.cubeActChild.name(), "expand active child to fill cursor");
-		cinolib::print_binding(kb.shrinkCursor.name(), "shrink cursor along edit dim");
-		cinolib::print_binding(kb.expandCursor.name(), "expand cursor along edit dim");
-		cinolib::print_binding(kb.translateCursorPlus.name(), "translate cursor along edit dim +");
-		cinolib::print_binding(kb.translateCursorMinus.name(), "translate cursor along edit dim -");
-		cinolib::print_binding(kb.hideShown.name(), "hide shown children");
-		cinolib::print_binding(kb.cloneShown.name(), "clone shown children");
-		cinolib::print_binding(kb.removeShown.name(), "remove shown children");
-		cinolib::print_binding(kb.translateShownPlus.name(), "translate shown children along edit dim +");
-		cinolib::print_binding(kb.translateShownMinus.name(), "translate shown children along edit dim -");
-		cinolib::print_binding(kb.rotateShown.name(), "rotate shown children along edit dim");
-		cinolib::print_binding(kb.flipShown.name(), "flip shown children with respect to edit dim");
-		cinolib::print_binding(kb.selAll.name(), "select all children");
-		cinolib::print_binding(kb.deselAll.name(), "deselect all children");
-		cinolib::print_binding(kb.selActChild.name(), "select active child");
-		cinolib::print_binding(kb.deselActChild.name(), "deselect active child");
-		cinolib::print_binding(kb.editDimX.name(), "set edit dim X");
-		cinolib::print_binding(kb.editDimY.name(), "set edit dim Y");
-		cinolib::print_binding(kb.editDimZ.name(), "set edit dim Z");
-		cinolib::print_binding(kb.save.name(), "save");
-		cinolib::print_binding(kb.saveNew.name(), "save as a new file");
-		cinolib::print_binding(kb.open.name(), "open");
-		cinolib::print_binding(cinolib::KeyBinding::mod_names(mb.modSetVert), "set vert (hold down and click)");
-		cinolib::print_binding(cinolib::KeyBinding::mod_names(mb.modActChild), "activate child (hold down and click)");
-		cinolib::print_binding(cinolib::KeyBinding::mod_names(mb.modActAnotherChild), "activate another child (hold down and click)");
-		cinolib::print_binding(cinolib::KeyBinding::mod_names(mb.modActActChildVert), "activate active child vertex (hold down and click)");
+		cinolib::print_binding(c_kbToggleSingleMode.name(), "toggle single mode");
+		cinolib::print_binding(c_kbToggleSolidMode.name(), "toggle solid mode");
+		cinolib::print_binding(c_kbActNextChild.name(), "activate next child");
+		cinolib::print_binding(c_kbActPrevChild.name(), "activate previous child");
+		cinolib::print_binding(c_kbActNextVert.name(), "activate next vertex");
+		cinolib::print_binding(c_kbActPrevVert.name(), "activate previous vertex");
+		cinolib::print_binding(c_kbActVert0.name(), "activate vertex 0");
+		cinolib::print_binding(c_kbActVert1.name(), "activate vertex 1");
+		cinolib::print_binding(c_kbActVert2.name(), "activate vertex 2");
+		cinolib::print_binding(c_kbActVert3.name(), "activate vertex 3");
+		cinolib::print_binding(c_kbActVert4.name(), "activate vertex 4");
+		cinolib::print_binding(c_kbActVert5.name(), "activate vertex 5");
+		cinolib::print_binding(c_kbActVert6.name(), "activate vertex 6");
+		cinolib::print_binding(c_kbActVert7.name(), "activate vertex 7");
+		cinolib::print_binding(c_kbSetVertAndNextVert.name(), "set vertex and activate next");
+		cinolib::print_binding(c_kbSetVert.name(), "set vertex");
+		cinolib::print_binding(c_kbAddChild.name(), "add child");
+		cinolib::print_binding(c_kbAddCursorChildGrid.name(), "add cursor children grid");
+		cinolib::print_binding(c_kbToggleCursor.name(), "toggle cursor");
+		cinolib::print_binding(c_kbCubeActChild.name(), "expand active child to fill cursor");
+		cinolib::print_binding(c_kbShrinkCursor.name(), "shrink cursor along edit dim");
+		cinolib::print_binding(c_kbExpandCursor.name(), "expand cursor along edit dim");
+		cinolib::print_binding(c_kbTranslateCursorPlus.name(), "translate cursor along edit dim +");
+		cinolib::print_binding(c_kbTranslateCursorMinus.name(), "translate cursor along edit dim -");
+		cinolib::print_binding(c_kbHideShown.name(), "hide shown children");
+		cinolib::print_binding(c_kbCloneShown.name(), "clone shown children");
+		cinolib::print_binding(c_kbRemoveShown.name(), "remove shown children");
+		cinolib::print_binding(c_kbTranslateShownPlus.name(), "translate shown children along edit dim +");
+		cinolib::print_binding(c_kbTranslateShownMinus.name(), "translate shown children along edit dim -");
+		cinolib::print_binding(c_kbRotateShown.name(), "rotate shown children along edit dim");
+		cinolib::print_binding(c_kbFlipShown.name(), "flip shown children with respect to edit dim");
+		cinolib::print_binding(c_kbSelAll.name(), "select all children");
+		cinolib::print_binding(c_kbDeselAll.name(), "deselect all children");
+		cinolib::print_binding(c_kbSelActChild.name(), "select active child");
+		cinolib::print_binding(c_kbDeselActChild.name(), "deselect active child");
+		cinolib::print_binding(c_kbEditDimX.name(), "set edit dim X");
+		cinolib::print_binding(c_kbEditDimY.name(), "set edit dim Y");
+		cinolib::print_binding(c_kbEditDimZ.name(), "set edit dim Z");
+		cinolib::print_binding(c_kbSave.name(), "save");
+		cinolib::print_binding(c_kbSaveNew.name(), "save as a new file");
+		cinolib::print_binding(c_kbOpen.name(), "open");
+		cinolib::print_binding(cinolib::KeyBinding::mod_names(c_mbModSetVert), "set vert (hold down and click)");
+		cinolib::print_binding(cinolib::KeyBinding::mod_names(c_mbModActChild), "activate child (hold down and click)");
+		cinolib::print_binding(cinolib::KeyBinding::mod_names(c_mbModActAnotherChild), "activate another child (hold down and click)");
+		cinolib::print_binding(cinolib::KeyBinding::mod_names(c_mbModActActChildVert), "activate active child vertex (hold down and click)");
 		std::cout << "-------------------------------" << std::endl;
 	}
 
