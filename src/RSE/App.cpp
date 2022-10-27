@@ -251,176 +251,184 @@ namespace RSE
 
 	bool App::onKeyPress(int _key, int _modifiers)
 	{
-		if (!_modifiers)
+		const cinolib::KeyBinding binding{ _key, _modifiers };
+		if (binding == kb.addChild)
 		{
-			switch (_key)
-			{
-				case GLFW_KEY_A:
-					m_appWidget.addChild();
-					m_appWidget.setActiveChild(m_appWidget.children().size() - 1);
-					return true;
-				case GLFW_KEY_U:
-					m_appWidget.setSolidMode(!m_appWidget.solidMode());
-					return true;
-				case GLFW_KEY_X:
-					m_appWidget.editDim = hexUtils::EDim::X;
-					return true;
-				case GLFW_KEY_Y:
-					m_appWidget.editDim = hexUtils::EDim::Y;
-					return true;
-				case GLFW_KEY_Z:
-					m_appWidget.editDim = hexUtils::EDim::Z;
-					return true;
-				case GLFW_KEY_UP:
-					onAdvanceActiveChild(false);
-					return true;
-				case GLFW_KEY_DOWN:
-					onAdvanceActiveChild(true);
-					return true;
-				case GLFW_KEY_LEFT:
-					onAdvanceActiveVert(false);
-					return true;
-				case GLFW_KEY_RIGHT:
-					onAdvanceActiveVert(true);
-					return true;
-				case GLFW_KEY_KP_0:
-				case GLFW_KEY_0:
-					onSetActiveVert(0);
-					return true;
-				case GLFW_KEY_KP_1:
-				case GLFW_KEY_1:
-					onSetActiveVert(1);
-					return true;
-				case GLFW_KEY_KP_2:
-				case GLFW_KEY_2:
-					onSetActiveVert(2);
-					return true;
-				case GLFW_KEY_KP_3:
-				case GLFW_KEY_3:
-					onSetActiveVert(3);
-					return true;
-				case GLFW_KEY_KP_4:
-				case GLFW_KEY_4:
-					onSetActiveVert(4);
-					return true;
-				case GLFW_KEY_KP_5:
-				case GLFW_KEY_5:
-					onSetActiveVert(5);
-					return true;
-				case GLFW_KEY_KP_6:
-				case GLFW_KEY_6:
-					onSetActiveVert(6);
-					return true;
-				case GLFW_KEY_KP_7:
-				case GLFW_KEY_7:
-					onSetActiveVert(7);
-					return true;
-				case GLFW_KEY_S:
-					m_appWidget.setSingleMode(!m_appWidget.singleMode());
-					return true;
-				case GLFW_KEY_H:
-					m_appWidget.setHideCursor(!m_appWidget.source().hideCursor());
-					return true;
-				case GLFW_KEY_E:
-					onSetVert();
-					onAdvanceActiveVert(true);
-					return true;
-				case GLFW_KEY_W:
-					onSetVert();
-					return true;
-				case GLFW_KEY_Q:
-					m_appWidget.cubeActive();
-					return true;
-			}
+			m_appWidget.addChild();
+			m_appWidget.setActiveChild(m_appWidget.children().size() - 1);
 		}
-		else if (_modifiers == GLFW_MOD_SHIFT)
+		else if (binding == kb.toggleSolidMode)
 		{
-			switch (_key)
-			{
-				case GLFW_KEY_A:
-					m_appWidget.addChildrenCursorGrid();
-					return true;
-			}
+			m_appWidget.setSolidMode(!m_appWidget.solidMode());
 		}
-		else if (_modifiers == GLFW_MOD_ALT)
+		else if (binding == kb.editDimX)
 		{
-			switch (_key)
-			{
-				case GLFW_KEY_LEFT:
-					m_appWidget.scaleCursor(false);
-					return true;
-				case GLFW_KEY_RIGHT:
-					m_appWidget.scaleCursor(true);
-					return true;
-				case GLFW_KEY_DOWN:
-					m_appWidget.translateCursor(false);
-					return true;
-				case GLFW_KEY_UP:
-					m_appWidget.translateCursor(true);
-					return false;
-			}
+			m_appWidget.editDim = hexUtils::EDim::X;
 		}
-		else if (_modifiers == GLFW_MOD_CONTROL)
+		else if (binding == kb.editDimY)
 		{
-			switch (_key)
-			{
-				case GLFW_KEY_DELETE:
-					m_appWidget.removeShown();
-					return true;
-				case GLFW_KEY_DOWN:
-					m_appWidget.translateShown(false);
-					return true;
-				case GLFW_KEY_UP:
-					m_appWidget.translateShown(true);
-					return true;
-				case GLFW_KEY_Q:
-					m_appWidget.setActiveSelected(true);
-					return true;
-				case GLFW_KEY_D:
-					m_appWidget.cloneShown();
-					return true;
-				case GLFW_KEY_H:
-					m_appWidget.hideActive();
-					return true;
-				case GLFW_KEY_R:
-					m_appWidget.rotateShown();
-					return true;
-				case GLFW_KEY_F:
-					m_appWidget.flipShown();
-					return true;
-				case GLFW_KEY_A:
-					m_appWidget.setAllSelected(true);
-					return true;
-				case GLFW_KEY_S:
-					m_appWidget.save(false);
-					return true;
-				case GLFW_KEY_O:
-					m_appWidget.load();
-					return true;
-			}
+			m_appWidget.editDim = hexUtils::EDim::Y;
 		}
-		else if (_modifiers == (GLFW_MOD_CONTROL | GLFW_MOD_SHIFT))
+		else if (binding == kb.editDimZ)
 		{
-			switch (_key)
-			{
-				case GLFW_KEY_A:
-					m_appWidget.setAllSelected(false);
-					return true;
-				case GLFW_KEY_Q:
-					m_appWidget.setActiveSelected(false);
-					return true;
-				case GLFW_KEY_S:
-					m_appWidget.save(true);
-					return true;
-			}
+			m_appWidget.editDim = hexUtils::EDim::Z;
 		}
-		return false;
+		else if (binding == kb.actPrevChild)
+		{
+			onAdvanceActiveChild(false);
+		}
+		else if (binding == kb.actNextChild)
+		{
+			onAdvanceActiveChild(true);
+		}
+		else if (binding == kb.actPrevChild)
+		{
+			onAdvanceActiveVert(false);
+		}
+		else if (binding == kb.actNextVert)
+		{
+			onAdvanceActiveVert(true);
+		}
+		else if (binding == kb.actVert0)
+		{
+			onSetActiveVert(0);
+		}
+		else if (binding == kb.actVert1)
+		{
+			onSetActiveVert(1);
+		}
+		else if (binding == kb.actVert2)
+		{
+			onSetActiveVert(2);
+		}
+		else if (binding == kb.actVert3)
+		{
+			onSetActiveVert(3);
+		}
+		else if (binding == kb.actVert4)
+		{
+			onSetActiveVert(4);
+		}
+		else if (binding == kb.actVert5)
+		{
+			onSetActiveVert(5);
+		}
+		else if (binding == kb.actVert6)
+		{
+			onSetActiveVert(6);
+		}
+		else if (binding == kb.actVert7)
+		{
+			onSetActiveVert(7);
+		}
+		else if (binding == kb.toggleSingleMode)
+		{
+			m_appWidget.setSingleMode(!m_appWidget.singleMode());
+		}
+		else if (binding == kb.toggleCursor)
+		{
+			m_appWidget.setHideCursor(!m_appWidget.source().hideCursor());
+		}
+		else if (binding == kb.setVertAndNextVert)
+		{
+			onSetVert();
+			onAdvanceActiveVert(true);
+		}
+		else if (binding == kb.setVert)
+		{
+			onSetVert();
+		}
+		else if (binding == kb.cubeActChild)
+		{
+			m_appWidget.cubeActive();
+		}
+		else if (binding == kb.addCursorChildGrid)
+		{
+			m_appWidget.addChildrenCursorGrid();
+		}
+		else if (binding == kb.shrinkCursor)
+		{
+			m_appWidget.scaleCursor(false);
+		}
+		else if (binding == kb.expandCursor)
+		{
+			m_appWidget.scaleCursor(true);
+		}
+		else if (binding == kb.translateCursorMinus)
+		{
+			m_appWidget.translateCursor(false);
+		}
+		else if (binding == kb.translateCursorPlus)
+		{
+			m_appWidget.translateCursor(true);
+		}
+		else if (binding == kb.removeShown)
+		{
+			m_appWidget.removeShown();
+		}
+		else if (binding == kb.translateShownMinus)
+		{
+			m_appWidget.translateShown(false);
+		}
+		else if (binding == kb.translateShownPlus)
+		{
+			m_appWidget.translateShown(true);
+		}
+		else if (binding == kb.selActChild)
+		{
+			m_appWidget.setActiveSelected(true);
+		}
+		else if (binding == kb.cloneShown)
+		{
+			m_appWidget.cloneShown();
+		}
+		else if (binding == kb.hideShown)
+		{
+			m_appWidget.hideActive();
+		}
+		else if (binding == kb.rotateShown)
+		{
+			m_appWidget.rotateShown();
+		}
+		else if (binding == kb.flipShown)
+		{
+			m_appWidget.flipShown();
+		}
+		else if (binding == kb.selAll)
+		{
+			m_appWidget.setAllSelected(true);
+		}
+		else if (binding == kb.save)
+		{
+			m_appWidget.save(false);
+		}
+		else if (binding == kb.open)
+		{
+			m_appWidget.load();
+		}
+		else if (binding == kb.deselAll)
+		{
+			m_appWidget.setAllSelected(false);
+		}
+		else if (binding == kb.selActChild)
+		{
+			m_appWidget.setActiveSelected(false);
+		}
+		else if (binding == kb.saveNew)
+		{
+			m_appWidget.save(true);
+		}
+		else
+		{
+			return false;
+		}
+		return true;
 	}
 
 	void App::onClick(int _modifiers)
 	{
 
-		if (_modifiers == GLFW_MOD_CONTROL)
+		if (_modifiers == mb.modSetVert)
 		{
 			onSetVert();
 		}
@@ -436,8 +444,9 @@ namespace RSE
 					return true;
 				}
 				return false;
-			} };
-			if (_modifiers == GLFW_MOD_SHIFT)
+			}
+			};
+			if (_modifiers == mb.modActChild)
 			{
 				for (std::size_t i{}; i < m_appWidget.children().size(); i++)
 				{
@@ -447,14 +456,14 @@ namespace RSE
 					}
 				}
 			}
-			else if (_modifiers == GLFW_MOD_ALT)
+			else if (_modifiers == mb.modActActChildVert)
 			{
 				if (m_appWidget.activeChildIndex())
 				{
 					pickActive(*m_appWidget.activeChildIndex());
 				}
 			}
-			else if (_modifiers == (GLFW_MOD_ALT | GLFW_MOD_SHIFT))
+			else if (_modifiers == mb.modActAnotherChild)
 			{
 				for (std::size_t i{ m_appWidget.activeChildIndex().value_or(-1) + 1 }; i < m_appWidget.children().size(); i++)
 				{
@@ -485,6 +494,57 @@ namespace RSE
 		}
 		const std::string title{ fileName.empty() ? appName : appName + " - " + fileName };
 		glfwSetWindowTitle(m_canvas.window, title.c_str());
+	}
+
+	void App::printBindings()
+	{
+		std::cout << "----- Editor key bindings -----\n";
+		cinolib::print_binding(kb.toggleSingleMode.name(), "toggle single mode");
+		cinolib::print_binding(kb.toggleSolidMode.name(), "toggle solid mode");
+		cinolib::print_binding(kb.actNextChild.name(), "activate next child");
+		cinolib::print_binding(kb.actPrevChild.name(), "activate previous child");
+		cinolib::print_binding(kb.actNextVert.name(), "activate next vertex");
+		cinolib::print_binding(kb.actPrevVert.name(), "activate previous vertex");
+		cinolib::print_binding(kb.actVert0.name(), "activate vertex 0");
+		cinolib::print_binding(kb.actVert1.name(), "activate vertex 1");
+		cinolib::print_binding(kb.actVert2.name(), "activate vertex 2");
+		cinolib::print_binding(kb.actVert3.name(), "activate vertex 3");
+		cinolib::print_binding(kb.actVert4.name(), "activate vertex 4");
+		cinolib::print_binding(kb.actVert5.name(), "activate vertex 5");
+		cinolib::print_binding(kb.actVert6.name(), "activate vertex 6");
+		cinolib::print_binding(kb.actVert7.name(), "activate vertex 7");
+		cinolib::print_binding(kb.setVertAndNextVert.name(), "set vertex and activate next");
+		cinolib::print_binding(kb.setVert.name(), "set vertex");
+		cinolib::print_binding(kb.addChild.name(), "add child");
+		cinolib::print_binding(kb.addCursorChildGrid.name(), "add cursor children grid");
+		cinolib::print_binding(kb.toggleCursor.name(), "toggle cursor");
+		cinolib::print_binding(kb.cubeActChild.name(), "expand active child to fill cursor");
+		cinolib::print_binding(kb.shrinkCursor.name(), "shrink cursor along edit dim");
+		cinolib::print_binding(kb.expandCursor.name(), "expand cursor along edit dim");
+		cinolib::print_binding(kb.translateCursorPlus.name(), "translate cursor along edit dim +");
+		cinolib::print_binding(kb.translateCursorMinus.name(), "translate cursor along edit dim -");
+		cinolib::print_binding(kb.hideShown.name(), "hide shown children");
+		cinolib::print_binding(kb.cloneShown.name(), "clone shown children");
+		cinolib::print_binding(kb.removeShown.name(), "remove shown children");
+		cinolib::print_binding(kb.translateShownPlus.name(), "translate shown children along edit dim +");
+		cinolib::print_binding(kb.translateShownMinus.name(), "translate shown children along edit dim -");
+		cinolib::print_binding(kb.rotateShown.name(), "rotate shown children along edit dim");
+		cinolib::print_binding(kb.flipShown.name(), "flip shown children with respect to edit dim");
+		cinolib::print_binding(kb.selAll.name(), "select all children");
+		cinolib::print_binding(kb.deselAll.name(), "deselect all children");
+		cinolib::print_binding(kb.selActChild.name(), "select active child");
+		cinolib::print_binding(kb.deselActChild.name(), "deselect active child");
+		cinolib::print_binding(kb.editDimX.name(), "set edit dim X");
+		cinolib::print_binding(kb.editDimY.name(), "set edit dim Y");
+		cinolib::print_binding(kb.editDimZ.name(), "set edit dim Z");
+		cinolib::print_binding(kb.save.name(), "save");
+		cinolib::print_binding(kb.saveNew.name(), "save as a new file");
+		cinolib::print_binding(kb.open.name(), "open");
+		cinolib::print_binding(cinolib::KeyBinding::mod_names(mb.modSetVert), "set vert (hold down and click)");
+		cinolib::print_binding(cinolib::KeyBinding::mod_names(mb.modActChild), "activate child (hold down and click)");
+		cinolib::print_binding(cinolib::KeyBinding::mod_names(mb.modActAnotherChild), "activate another child (hold down and click)");
+		cinolib::print_binding(cinolib::KeyBinding::mod_names(mb.modActActChildVert), "activate active child vertex (hold down and click)");
+		std::cout << "-------------------------------" << std::endl;
 	}
 
 	App::App() : m_canvas{}, m_axesWidget{ m_canvas.camera }, m_appWidget{}, m_grid{}, m_gridMesh{}, m_borderMesh{}, m_mouseGridIndex{}, vertsOrder{}
@@ -556,6 +616,7 @@ namespace RSE
 
 	int App::launch()
 	{
+		printBindings();
 		return m_canvas.launch();
 	}
 
