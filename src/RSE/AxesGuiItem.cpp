@@ -35,9 +35,9 @@ namespace RSE
 			origin = m_camera->view.centerAt(2);
 			radius = m_camera->projection.verticalFieldOfView / 2 * 0.75;
 		}
-		const RVec3 right(origin + cinolib::GLcanvas::world_right * radius);
-		const RVec3 up(origin + cinolib::GLcanvas::world_up * radius);
-		const RVec3 forward(origin - cinolib::GLcanvas::world_forward * radius);
+		const RVec3 right(origin + cinolib::GLcanvas::world_right() * radius);
+		const RVec3 up(origin + cinolib::GLcanvas::world_up() * radius);
+		const RVec3 forward(origin - cinolib::GLcanvas::world_forward() * radius);
 		const auto project{ [this](const RVec3& _point) -> RVec3 {
 			RVec3 proj(m_camera->projectionViewMatrix() * _point);
 			proj.x() *= m_camera->projection.aspectRatio;
