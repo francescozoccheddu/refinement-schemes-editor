@@ -96,7 +96,7 @@ namespace RSE
 		void onAdvanceActiveVert(bool _advance);
 		void onMouseMove();
 		bool onKeyPress(int _key, int _modifiers);
-		void onClick(int _modifiers);
+		bool onClick(int _modifiers);
 		void setWindowTitle();
 
 	public:

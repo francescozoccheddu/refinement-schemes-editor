@@ -425,62 +425,62 @@ namespace RSE
 		return true;
 	}
 
-	void App::onClick(int _modifiers)
+	bool App::onClick(int _modifiers)
 	{
-
+		const auto pickActive{ [this](std::size_t _child) {
+			const HexVertsU& verts{ m_appWidget.children()[_child].hexControl().verts() };
+			const auto it{ std::find(verts.begin(), verts.end(), m_grid.coord(m_mouseGridIndex)) };
+			if (it != verts.end())
+			{
+				m_appWidget.setActiveChild(_child);
+				m_appWidget.setActiveVert(it - verts.begin());
+				return true;
+			}
+			return false;
+		} };
 		if (_modifiers == c_mbModSetVert)
 		{
 			onSetVert();
 		}
-		else
+		else if (_modifiers == c_mbModActChild)
 		{
-			const auto pickActive{ [this](std::size_t _child) {
-				const HexVertsU& verts{ m_appWidget.children()[_child].hexControl().verts() };
-				const auto it{ std::find(verts.begin(), verts.end(), m_grid.coord(m_mouseGridIndex)) };
-				if (it != verts.end())
-				{
-					m_appWidget.setActiveChild(_child);
-					m_appWidget.setActiveVert(it - verts.begin());
-					return true;
-				}
-				return false;
-			}
-			};
-			if (_modifiers == c_mbModActChild)
+			for (std::size_t i{}; i < m_appWidget.children().size(); i++)
 			{
-				for (std::size_t i{}; i < m_appWidget.children().size(); i++)
+				if (m_appWidget.shown(m_appWidget.children()[i]) && pickActive(i))
 				{
-					if (m_appWidget.shown(m_appWidget.children()[i]) && pickActive(i))
-					{
-						break;
-					}
-				}
-			}
-			else if (_modifiers == c_mbModActActChildVert)
-			{
-				if (m_appWidget.activeChildIndex())
-				{
-					pickActive(*m_appWidget.activeChildIndex());
-				}
-			}
-			else if (_modifiers == c_mbModActAnotherChild)
-			{
-				for (std::size_t i{ m_appWidget.activeChildIndex().value_or(-1) + 1 }; i < m_appWidget.children().size(); i++)
-				{
-					if (m_appWidget.shown(m_appWidget.children()[i]) && pickActive(i))
-					{
-						return;
-					}
-				}
-				for (std::size_t i{ 0 }; i < m_appWidget.activeChildIndex().value_or(0); i++)
-				{
-					if (m_appWidget.shown(m_appWidget.children()[i]) && pickActive(i))
-					{
-						return;
-					}
+					break;
 				}
 			}
 		}
+		else if (_modifiers == c_mbModActActChildVert)
+		{
+			if (m_appWidget.activeChildIndex())
+			{
+				pickActive(*m_appWidget.activeChildIndex());
+			}
+		}
+		else if (_modifiers == c_mbModActAnotherChild)
+		{
+			for (std::size_t i{ m_appWidget.activeChildIndex().value_or(-1) + 1 }; i < m_appWidget.children().size(); i++)
+			{
+				if (m_appWidget.shown(m_appWidget.children()[i]) && pickActive(i))
+				{
+					return true;
+				}
+			}
+			for (std::size_t i{ 0 }; i < m_appWidget.activeChildIndex().value_or(0); i++)
+			{
+				if (m_appWidget.shown(m_appWidget.children()[i]) && pickActive(i))
+				{
+					break;
+				}
+			}
+		}
+		else
+		{
+			return false;
+		}
+		return true;
 	}
 
 	void App::setWindowTitle()
@@ -603,7 +603,7 @@ namespace RSE
 		m_canvas.depth_cull_markers = false;
 		m_canvas.show_sidebar(true);
 		m_canvas.key_bindings.pan_with_arrow_keys = false;
-		m_canvas.callback_mouse_left_click = [this](int _modifiers) { onClick(_modifiers); return true; };
+		m_canvas.callback_mouse_left_click = [this](int _modifiers) { return onClick(_modifiers); };
 		m_canvas.callback_key_pressed = [this](int _key, int _modifiers) { return onKeyPress(_key, _modifiers); };
 		m_canvas.callback_mouse_moved = [this](double _x, double _y) { onMouseMove(); return false; };
 		setWindowTitle();
