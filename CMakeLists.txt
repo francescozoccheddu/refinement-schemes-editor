@@ -14,7 +14,7 @@ set (CINOLIB_USES_OPENGL_GLFW_IMGUI ON)
 FetchContent_Declare (
     cinolib
     GIT_REPOSITORY "https://github.com/francescozoccheddu/cinolib.git"
-    GIT_TAG 0689dbe51e942d0c6c9c5c708d0688da49bb74a4
+    GIT_TAG 0464052369ee82558975bd1cd985e8664740dbe6
     GIT_SHALLOW TRUE
     GIT_PROGRESS TRUE
 )

@@ -547,7 +547,7 @@ namespace RSE
 		std::cout << "-------------------------------" << std::endl;
 	}
 
-	App::App() : m_canvas{}, m_axesWidget{ m_canvas.camera }, m_appWidget{}, m_grid{}, m_gridMesh{}, m_borderMesh{}, m_mouseGridIndex{}, vertsOrder{}
+	App::App() : m_canvas{ 700, 600, 13, 1.0f }, m_axesWidget{ m_canvas.camera }, m_appWidget{}, m_grid{}, m_gridMesh{}, m_borderMesh{}, m_mouseGridIndex{}, vertsOrder{}
 	{
 		// vertsOrder
 		vertsOrder.resize(8);

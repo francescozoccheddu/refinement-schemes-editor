@@ -592,8 +592,6 @@ namespace RSE
 
 	void AppSidebarItem::draw()
 	{
-		ImGui::Unindent(ImGui::GetTreeNodeToLabelSpacing());
-		ImGui::Spacing();
 		// source
 		ImGui::SetNextItemOpen(false, ImGuiCond_Once);
 		if (ImGui::CollapsingHeader("Source"))
@@ -601,20 +599,20 @@ namespace RSE
 			ImGui::Spacing();
 			switch (m_sourceControl.draw(minRequiredSize()))
 			{
-			case SourceControl::EResult::DoubledSize:
-				for (ChildControl* child : m_children)
-				{
-					HexVertsU verts{ child->hexControl().verts() };
-					hexUtils::scaleVerts(verts, IVec3{ 2,2,2 });
-					child->setVerts(verts);
-				}
-			case SourceControl::EResult::Updated:
-				onSourceUpdate();
-			case SourceControl::EResult::CursorUpdated:
-				onCursorUpdate();
-				break;
-			default:
-				break;
+				case SourceControl::EResult::DoubledSize:
+					for (ChildControl* child : m_children)
+					{
+						HexVertsU verts{ child->hexControl().verts() };
+						hexUtils::scaleVerts(verts, IVec3{ 2,2,2 });
+						child->setVerts(verts);
+					}
+				case SourceControl::EResult::Updated:
+					onSourceUpdate();
+				case SourceControl::EResult::CursorUpdated:
+					onCursorUpdate();
+					break;
+				default:
+					break;
 			}
 		}
 		// edit
@@ -731,20 +729,20 @@ namespace RSE
 				}
 				switch (result)
 				{
-				case ChildControl::EResult::Updated:
-					onChildUpdate(i);
-					if (wasActive && child.active() && child.hexControl().verts()[*activeVertIndex()] != oldActiveVertValue)
-					{
-						onActiveVertChange();
-					}
-					m_sourceControl.setSize(std::max(m_sourceControl.size(), child.maxSize()));
-					break;
-				case ChildControl::EResult::Removed:
-					removeChild(i);
-					--i;
-					break;
-				default:
-					break;
+					case ChildControl::EResult::Updated:
+						onChildUpdate(i);
+						if (wasActive && child.active() && child.hexControl().verts()[*activeVertIndex()] != oldActiveVertValue)
+						{
+							onActiveVertChange();
+						}
+						m_sourceControl.setSize(std::max(m_sourceControl.size(), child.maxSize()));
+						break;
+					case ChildControl::EResult::Removed:
+						removeChild(i);
+						--i;
+						break;
+					default:
+						break;
 				}
 				ImGui::Spacing();
 				ImGui::PopID();
@@ -822,7 +820,6 @@ namespace RSE
 		{
 			exportCodeToClipboard();
 		}
-		ImGui::Spacing();
 	}
 
 	void AppSidebarItem::randomColors()
