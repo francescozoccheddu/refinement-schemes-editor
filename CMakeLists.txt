@@ -15,7 +15,6 @@ FetchContent_Declare (
     cinolib
     GIT_REPOSITORY "https://github.com/francescozoccheddu/cinolib.git"
     GIT_TAG e492b33acf571867cbf1cc5faee04b3bf1b84a71
-    GIT_SHALLOW TRUE
     GIT_PROGRESS TRUE
 )
 
@@ -27,7 +26,6 @@ FetchContent_Declare (
     cpputils
     GIT_REPOSITORY "https://github.com/francescozoccheddu/cpputils.git"
     GIT_TAG 36f6a36f1863dc8db82e905fca9134b862007041
-    GIT_SHALLOW TRUE
     GIT_PROGRESS TRUE
 )
 
