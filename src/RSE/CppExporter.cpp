@@ -63,13 +63,13 @@ namespace RSE
 		}
 		ss << type << " " << name << " {\n";
 		ss << "\t" << _size << ",\n";
-		ss << "\t" << vecListType << "{\n";
+		ss << "\t" << vertListType << "{\n";
 		for (const IVec3& vert : data.verts)
 		{
-			ss << "\t\t" << vecType << "{" << vert.x() << ", " << vert.y() << ", " << vert.z() << "},\n";
+			ss << "\t\t" << vertType << "{" << vert.x() << ", " << vert.y() << ", " << vert.z() << "},\n";
 		}
 		ss << "\t},\n";
-		ss << "\t{\n";
+		ss << "\t" << indsListType << "{\n";
 		for (const std::array<Int, 8>&poly : data.polys)
 		{
 			ss << "\t\t" << indsType << "{";
