@@ -12,11 +12,11 @@ namespace RSE
 
 		bool constant{ true };
 		std::string name{ "generatedRefinement" };
-		std::string vecType{ "Vec" };
-		std::string childType{ "" };
+		std::string indsType{ "PolyVertIds" };
+		std::string vecType{ "IVec" };
 		std::string type{ "Refinement" };
 
-		std::string operator()(const std::vector<HexVerts>& _children) const;
+		std::string operator()(Int _size, const std::vector<HexVertsU>& _children) const;
 
 	};
 

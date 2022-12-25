@@ -19,7 +19,7 @@
 namespace RSE
 {
 
-	AppSidebarItem::AppSidebarItem() : cinolib::SideBarItem{ "App" }, m_children{}, m_sourceControl{}, m_activeChild{}, onSourceUpdate{}, m_hasAnySelected{ false }, m_singleMode{ false }, m_file{}, editDim{ hexUtils::EDim::X }
+	AppSidebarItem::AppSidebarItem(): cinolib::SideBarItem{ "App" }, m_children{}, m_sourceControl{}, m_activeChild{}, onSourceUpdate{}, m_hasAnySelected{ false }, m_singleMode{ false }, m_file{}, editDim{ hexUtils::EDim::X }
 	{
 	}
 
@@ -122,17 +122,11 @@ namespace RSE
 
 	std::string AppSidebarItem::exportCode() const
 	{
-		std::vector<HexVerts> children{};
+		std::vector<HexVertsU> children{};
 		children.reserve(m_children.size());
 		for (const ChildControl* child : m_children)
 		{
-			const HexVertsU& iVerts{ child->hexControl().verts() };
-			HexVerts rVerts;
-			for (std::size_t i{}; i < 8; i++)
-			{
-				rVerts[i] = iVerts[i].cast<Real>() / static_cast<Real>(m_sourceControl.size());
-			}
-			children.push_back(rVerts);
+			children.push_back(child->hexControl().verts());
 		}
 		CppExporter exporter{};
 		exporter.name = "";
@@ -159,7 +153,7 @@ namespace RSE
 		{
 			exporter.name = m_file.value_or("unnamed");
 		}
-		return exporter(children);
+		return exporter(m_sourceControl.size(), children);
 	}
 
 	void AppSidebarItem::setSolidMode(bool _enabled)
