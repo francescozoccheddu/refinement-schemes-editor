@@ -91,6 +91,8 @@ namespace RSE
 		Int size;
 		s >> size;
 		m_sourceControl.setSize(size);
+		onSourceUpdate();
+		onCursorUpdate();
 		std::size_t childrenSize{};
 		s >> childrenSize;
 		m_children.reserve(childrenSize);
