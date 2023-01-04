@@ -12,8 +12,8 @@ namespace RSE
 
 		bool constant{ true };
 		std::string name{ "generatedRefinement" };
-		std::string indsType{ "HexVertData<I>" };
-		std::string indsListType{ "std::vector<HexVertData<I>>" };
+		std::string indsType{ "HexVertIs" };
+		std::string indsListType{ "std::vector<HexVertIs>" };
 		std::string vertType{ "IVec" };
 		std::string vertListType{ "std::vector<IVec>" };
 		std::string type{ "Scheme" };
